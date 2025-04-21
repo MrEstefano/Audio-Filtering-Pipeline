@@ -3,8 +3,11 @@ This project involves DSP using FIR filter, windowing. Hardware is RPi Zero, PCM
 
 Adio FIR pipeline
 venv/                  your virtual environment
+
 fir_filter.py          Main FIR filter interface
+
 filter_methods.py      Different FIR design algorithms
+
 stream_process.py      Real-time audio capture + filtering
 
 For connections :
