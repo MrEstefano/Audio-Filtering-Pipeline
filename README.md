@@ -7,3 +7,9 @@ Adio FIR pipeline
 ├── window_types.py        ← Different window functions
 ├── stream_process.py      ← Real-time audio capture + filtering
 └── filters/               ← Directory to store designed filters
+
+Commands:
+cd ~/fir-audio-pipeline
+source venv/bin/activate
+python3 stream_process.py
+
