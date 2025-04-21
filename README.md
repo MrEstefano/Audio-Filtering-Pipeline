@@ -2,12 +2,11 @@
 This project involves DSP using FIR filter, windowing. Hardware is RPi Zero, PCM5102 I2S DAC, USB Soundcard as MIC input
 
 Adio FIR pipeline
-── venv/                  ← your virtual environment
-── fir_filter.py          ← Main FIR filter interface
-── filter_methods.py      ← Different FIR design algorithms
-── window_types.py        ← Different window functions
-── stream_process.py      ← Real-time audio capture + filtering
-── filters/               ← Directory to store designed filters
+venv/                  ← your virtual environment
+fir_filter.py          ← Main FIR filter interface
+filter_methods.py      ← Different FIR design algorithms
+stream_process.py      ← Real-time audio capture + filtering
+
 For connections :
 
 DAC Module	Raspberry Pi 3
