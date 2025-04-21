@@ -16,7 +16,7 @@ bash: pip install numpy sounddevice
 •	numpy — for your FIR math
 •	sounddevice — lightweight audio input/output in real-time (better than pyaudio for ARM boards)
 
-
+________________________________________
 Adio FIR pipeline:
 
 venv/                  your virtual environment
@@ -26,7 +26,7 @@ fir_filter.py          Main FIR filter interface
 filter_methods.py      Different FIR design algorithms
 
 stream_process.py      Real-time audio capture + filtering
-
+________________________________________
 For connections :
 
 DAC Module	Raspberry Pi 3
@@ -78,9 +78,9 @@ pi@raspberrypi:~ $ aplay -l
    Subdevices: 1/1
    Subdevice #0: subdevice #0
 You can try playing a wav file using aplay filename.wav or install mplayer to play other file types.
-
+________________________________________
 referances/credits: https://blog.himbeer.me/2018/12/27/how-to-connect-a-pcm5102-i2s-dac-to-your-raspberry-pi/
-
+________________________________________
 Commands:
 cd ~/fir-audio-pipeline
 source venv/bin/activate
