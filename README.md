@@ -1,16 +1,16 @@
 # Audio-Filtering-Pipeline
 This project involves DSP using FIR filter, windowing. Hardware is RPi Zero, PCM5102 I2S DAC, USB Soundcard as MIC input
 
-📁 1. Create a Project Folder
+1. Create a Project Folder
 bash : mkdir ~/fir-audio-pipeline
 ________________________________________
-🐍 2. Create a Virtual Environment
+2. Create a Virtual Environment
 bash : python3 -m venv venv
 Activate it:
 bash : source venv/bin/activate
 You’ll now see (venv) in your prompt — this means you're inside the environment.
 ________________________________________
-📦 3. Install Required Packages
+3. Install Required Packages
 For real-time audio streaming with FIR filtering, let’s start with:
 bash: pip install numpy sounddevice
 •	numpy — for your FIR math
@@ -19,13 +19,15 @@ bash: pip install numpy sounddevice
 ________________________________________
 Adio FIR pipeline:
 
-venv/                  your virtual environment
+venv/                  virtual environment
 
 fir_filter.py          Main FIR filter interface
 
 filter_methods.py      Different FIR design algorithms
 
 stream_process.py      Real-time audio capture + filtering
+
+window_types.py        mmodular choiceof windows, incl. keiser which requires beta factor
 ________________________________________
 For connections :
 
