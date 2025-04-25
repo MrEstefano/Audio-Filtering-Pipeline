@@ -3,6 +3,15 @@ import numpy as np
 import sounddevice as sd
 from fir_filter import create_fir_filter
 
+# === FIR Filter Parameters ===
+NUM_TAPS = 101
+CUTOFF = 13000  # Use list for bandpass/bandstop
+WINDOW_TYPE = 'nuttall'
+FILTER_TYPE = 'lowpass'  # lowpass | highpass | bandpass | bandstop ( if remez method selected, only high and lowpass works)
+SAMPLERATE = 44100
+CHANNELS = 1
+
+
 # Filter Type   Cutoff Format   Example
 # lowpass       Single float    0.2
 # highpass      Single float    0.3
@@ -33,13 +42,6 @@ from fir_filter import create_fir_filter
 # Flat Top      "flattop"       Flat frequency response, useful for accurate amplitude measurement.
 # Nuttall       "nuttall"       Very low sidelobes, useful in precision filtering.
 
-# === FIR Filter Parameters ===
-NUM_TAPS = 101
-CUTOFF = 13000  # Use list for bandpass/bandstop
-WINDOW_TYPE = 'nuttall'
-FILTER_TYPE = 'lowpass'  # lowpass | highpass | bandpass | bandstop ( if remez method selected, only high and lowpass works)
-SAMPLERATE = 44100
-CHANNELS = 1
 
 
 # === Design FIR Filter ===
