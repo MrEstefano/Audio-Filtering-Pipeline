@@ -5,8 +5,15 @@ from scipy.signal import remez
 
 def design_fir_filter(method='window', cutoff=0.3, numtaps=101, window=None, filter_type='lowpass', samplerate=44100):
     if method == 'window':
-        h = np.sinc(2 * cutoff * (np.arange(numtaps) - (numtaps - 1) / 2)) * window
-        return h
+        if filter_type in ['lowpass', 'highpass']:
+            h = np.sinc(2 * cutoff * (np.arange(numtaps) - (numtaps - 1) / 2)) * window
+            return h
+        elif filter_type in ['bandpass', 'bandstop']:
+            if not isinstance(cutoff, (list, tuple)) or len(cutoff) != 2:
+                raise ValueError("Bandpass and bandstop filters require cutoff as a 2-element list or tuple.")
+            return firwin(numtaps, cutoff, window=window, pass_zero=(filter_type == 'bandstop'))
+        else:
+            raise ValueError(f"Unsupported filter type: {filter_type}")
     elif method == 'remez':
         if filter_type == 'lowpass':
             trans_width = min(1000, (samplerate / 2 - cutoff) / 2)
