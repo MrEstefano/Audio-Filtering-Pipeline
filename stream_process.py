@@ -5,12 +5,14 @@ from fir_filter import create_fir_filter
 
 # === FIR Filter Parameters ===
 NUM_TAPS = 101
-CUTOFF = 13000  # Use list for bandpass/bandstop
+CUTOFF = 13000  # Use for high and lowpass
+# CUTOFF = [100, 1300]  # Use list for bandpass/bandstop
 WINDOW_TYPE = 'nuttall'
-FILTER_TYPE = 'lowpass'  # lowpass | highpass | bandpass | bandstop ( if remez method selected, only high and lowpass works)
+# if you choose FILTER_TYPE = 'remez' method selected, only high and lowpass works
+# if you choose FILTER_TYPE = 'window' method selected, all lowpass | highpass | bandpass | bandstop  will work 
+FILTER_TYPE = 'lowpass'  # lowpass | highpass | bandpass | bandstop 
 SAMPLERATE = 44100
 CHANNELS = 1
-
 
 # Filter Type   Cutoff Format   Example
 # lowpass       Single float    0.2
@@ -45,6 +47,8 @@ CHANNELS = 1
 
 
 # === Design FIR Filter ===
+# if you choose method = 'remez' method selected, only high and lowpass works
+# if you choose method = 'window' method selected, all lowpass | highpass | bandpass | bandstop  will work 
 fir_coeff = create_fir_filter(
     method='window',   # remez
     cutoff=CUTOFF,
