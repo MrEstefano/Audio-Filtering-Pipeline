@@ -31,12 +31,12 @@ window_types.py        mmodular choiceof windows, incl. keiser which requires be
 ________________________________________
 For connections :
 
-DAC Module	Raspberry Pi 3
+PCM5102 DAC Module	with Raspberry Pi Zero
 VIN	Pin 2 (5V)
 GND	Pin 6 (GND)
-LCK	Pin 35
-DIN	Pin 40
-BCK	Pin 12
+LCK	Pin 35/ GPIO 19
+DIN	Pin 40/ GPIO 21
+BCK	Pin 12/ GPIO 18
 SCK	GND
 Note: The PCM5102 will generate SCK by itself, but it needs to know that it should do that, this is done by connecting SCK to GND. 
 
