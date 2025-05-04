@@ -2,17 +2,22 @@
 import numpy as np
 import sounddevice as sd
 from fir_filter import create_fir_filter
+from plot_filter import plot_filter_response
+
+
 
 # === FIR Filter Parameters ===
-NUM_TAPS = 101
-CUTOFF = 13000  # Use for high and lowpass
-# CUTOFF = [100, 1300]  # Use list for bandpass/bandstop
-WINDOW_TYPE = 'nuttall'
-# if you choose FILTER_TYPE = 'remez' method selected, only high and lowpass works
-# if you choose FILTER_TYPE = 'window' method selected, all lowpass | highpass | bandpass | bandstop  will work 
-FILTER_TYPE = 'lowpass'  # lowpass | highpass | bandpass | bandstop 
+NUM_TAPS = 201
+CUTOFF = 9000  # Use list for bandpass/bandstop
+#CUTOFF = [0, 17000]  # Use list for bandpass/bandstop
+WINDOW_TYPE = 'kaiser'
+FILTER_TYPE = 'lowpass'  # lowpass | highpass | bandpass | bandstop ( if remez method selected, only high and lowpass works)
 SAMPLERATE = 44100
 CHANNELS = 1
+# if you choose FILTER_TYPE = 'remez' method selected, only high and lowpass works
+# if you choose FILTER_TYPE = 'window' method selected, all lowpass | highpass | bandpass | bandstop  will work 
+
+
 
 # Filter Type   Cutoff Format   Example
 # lowpass       Single float    0.2
@@ -49,6 +54,7 @@ CHANNELS = 1
 # === Design FIR Filter ===
 # if you choose method = 'remez' method selected, only high and lowpass works
 # if you choose method = 'window' method selected, all lowpass | highpass | bandpass | bandstop  will work 
+
 fir_coeff = create_fir_filter(
     method='window',   # remez
     cutoff=CUTOFF,
@@ -58,19 +64,21 @@ fir_coeff = create_fir_filter(
     samplerate = SAMPLERATE
 )
 
+# Call the function to plot the filter response
+plot_filter_response(fir_coeff, SAMPLERATE)
 
 # === Create Filter Buffer ===
 buffer = np.zeros(NUM_TAPS - 1)
 
 def audio_callback(indata, outdata, frames, time, status):
     global buffer
-#    start = time_module.time()  # ← you'll need to import time as time_module
+
     if status:
         print(f"Stream status: {status}")
 
     # Flatten input for mono processing
     samples = indata[:, 0]
-
+    
     # Concatenate buffer and input
     x = np.concatenate((buffer, samples))
 
@@ -82,8 +90,6 @@ def audio_callback(indata, outdata, frames, time, status):
 
     # Output to speaker/DAC
     outdata[:, 0] = y.astype(np.float32)
-#    if callback_counter % 50 == 0:
-#       print(f"Block time: {time_module.time() - start:.5f}s")
 
 
 if __name__ == "__main__":
@@ -102,6 +108,6 @@ if __name__ == "__main__":
             while True:
                 sd.sleep(1000)  # effectively run forever
     except KeyboardInterrupt:
-        print("\nStopped.")
+                print("\nStopped.")
     except Exception as e:
         print(f"Error: {e}")
