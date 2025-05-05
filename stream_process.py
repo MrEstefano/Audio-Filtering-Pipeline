@@ -2,16 +2,18 @@
 import numpy as np
 import sounddevice as sd
 from fir_filter import create_fir_filter
+import matplotlib
+import matplotlib.pyplot as plt
 from plot_filter import plot_filter_response
 
 
 
 # === FIR Filter Parameters ===
-NUM_TAPS = 201
-CUTOFF = 9000  # Use list for bandpass/bandstop
-#CUTOFF = [0, 17000]  # Use list for bandpass/bandstop
-WINDOW_TYPE = 'kaiser'
-FILTER_TYPE = 'lowpass'  # lowpass | highpass | bandpass | bandstop ( if remez method selected, only high and lowpass works)
+NUM_TAPS = 101
+CUTOFF = 9100
+#CUTOFF = [550, 12900]  # Use list for bandpass/bandstop
+WINDOW_TYPE = 'nuttall'
+FILTER_TYPE = 'lowpass'
 SAMPLERATE = 44100
 CHANNELS = 1
 # if you choose FILTER_TYPE = 'remez' method selected, only high and lowpass works
@@ -22,8 +24,8 @@ CHANNELS = 1
 # Filter Type   Cutoff Format   Example
 # lowpass       Single float    0.2
 # highpass      Single float    0.3
-# bandpass      List or tuple of 2      [0.2, 0.4]
-# bandstop      List or tuple of 2      [0.45, 0.5]
+# bandpass      List or tuple of 2      [200, 4000]
+# bandstop      List or tuple of 2      [4500, 12500]
 
 # 0.00  0 Hz    DC (no frequency)
 # 0.05  2,205 Hz        Low-frequency bass
@@ -55,59 +57,52 @@ CHANNELS = 1
 # if you choose method = 'remez' method selected, only high and lowpass works
 # if you choose method = 'window' method selected, all lowpass | highpass | bandpass | bandstop  will work 
 
+
+
+
+# [Rest of your existing code...]
 fir_coeff = create_fir_filter(
-    method='window',   # remez
+    method='window',
     cutoff=CUTOFF,
     numtaps=NUM_TAPS,
     window_type=WINDOW_TYPE,
     filter_type=FILTER_TYPE,
-    samplerate = SAMPLERATE
+    samplerate=SAMPLERATE
 )
 
-# Call the function to plot the filter response
-plot_filter_response(fir_coeff, SAMPLERATE)
+# Show filter response (added delay to ensure plot appears)
+plot_filter_response(fir_coeff,fs=SAMPLERATE,filter_type=FILTER_TYPE)
+plt.pause(0.1)  # Give the plot window time to initialize
 
-# === Create Filter Buffer ===
+# [Keep your existing audio callback and main loop...]
 buffer = np.zeros(NUM_TAPS - 1)
 
 def audio_callback(indata, outdata, frames, time, status):
     global buffer
-
     if status:
         print(f"Stream status: {status}")
 
-    # Flatten input for mono processing
     samples = indata[:, 0]
-    
-    # Concatenate buffer and input
     x = np.concatenate((buffer, samples))
-
-    # Apply FIR filter via convolution
     y = np.convolve(x, fir_coeff, mode='valid')
-
-    # Update buffer for next callback
     buffer = x[-(NUM_TAPS - 1):]
-
-    # Output to speaker/DAC
     outdata[:, 0] = y.astype(np.float32)
 
-
 if __name__ == "__main__":
-
     print("Streaming to PCM5102 DAC... Press Ctrl+C to stop.")
     try:
         with sd.Stream(
             samplerate=SAMPLERATE,
-            blocksize=1024,  # Try 1024, 2048, or higher
+            blocksize=1024,
             channels=CHANNELS,
             dtype='float32',
-            latency='high',  # You can try 'low', 'high', or explicit like 0.1
+            latency='high',
             callback=audio_callback,
-            device=(1,0)  # or replace with ("input_device", "output_device")
+            device=(1,0)
         ):
             while True:
-                sd.sleep(1000)  # effectively run forever
+                sd.sleep(1000)
     except KeyboardInterrupt:
-                print("\nStopped.")
+        print("\nStopped.")
     except Exception as e:
         print(f"Error: {e}")
