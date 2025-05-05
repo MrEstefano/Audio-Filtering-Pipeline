@@ -12,7 +12,7 @@ def create_fir_filter(method='window', cutoff=0.3, numtaps=101, window_type='ham
         method=method,
         cutoff=cutoff,
         numtaps=numtaps,
-        window=window,
+        window=window_type,
         filter_type=filter_type,
         samplerate=samplerate
     )
