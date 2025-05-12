@@ -14,6 +14,7 @@ A real-time audio processing system implementing FIR filters on Raspberry Pi Zer
 - [Usage Examples](#usage-examples)
 - [Visualization](#visualization)
 - [Troubleshooting](#troubleshooting)
+- [Acknowledgments](#acknowledgments)
 - [License](#license)
 
 ## Project Overview
