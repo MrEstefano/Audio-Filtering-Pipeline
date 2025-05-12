@@ -37,80 +37,159 @@ This DSP pipeline provides:
 ```bash
 git clone https://github.com/yourusername/audio-filter-pipeline.git
 cd audio-filter-pipeline
+2. Create Virtual Environment
+bash
+python3 -m venv venv
+source venv/bin/activate
+3. Install Dependencies
+bash
+pip install -r requirements.txt
+Required packages:
 
+numpy - FIR math and array operations
 
+sounddevice - Low-latency audio I/O
 
+scipy - Signal processing functions
 
+matplotlib - Filter visualization
 
-________________________________________
-Adio FIR pipeline:
+soxr - High-quality resampling
 
-venv/                  virtual environment
-fir_filter.py          Main FIR filter interface
-filter_methods.py      Different FIR design algorithms
-stream_process.py      Real-time audio capture + filtering
-window_types.py        mmodular choiceof windows, incl. keiser which requires beta factor
-________________________________________
-For connections :
+Hardware Configuration
+PCM5102 I2S DAC Connections
+PCM5102 Pin	RPi Zero Pin	GPIO
+VIN (5V)	Pin 2	-
+GND	Pin 6	-
+LCK (LRCK)	Pin 35	19
+DIN (DATA)	Pin 40	21
+BCK (BCLK)	Pin 12	18
+SCK	GND	-
+System Configuration
+Enable I2S in /boot/config.txt:
 
-PCM5102 DAC Module	with Raspberry Pi Zero
--VIN	Pin 2 (5V)
--GND	Pin 6 (GND)
--LCK	Pin 35/ GPIO 19
--DIN	Pin 40/ GPIO 21
--BCK	Pin 12/ GPIO 18
--SCK	GND
-Note: The PCM5102 will generate SCK by itself, but it needs to know that it should do that, this is done by connecting SCK to GND. 
-
-Software setup
-This guide explains it quite well, but I will summarise it here, in case something ever happens to that link.
-
-Editing boot.txt
-Run this command to open the file in a text editor:
-
+bash
 sudo nano /boot/config.txt
-You will need to change the following things:
-Uncomment (remove the # before the line):
-
+ini
 dtparam=i2s=on
-Comment (add a # before the line):
-
 #dtparam=audio=on
-Append this to the end of the file:
-
 dtoverlay=hifiberry-dac
-Creating asound.conf
-Run this command to open the file in a text editor:
+Configure ALSA (/etc/asound.conf):
 
+bash
 sudo nano /etc/asound.conf
-And paste the following:
-
-pcm.!default  {
- type hw card 0
+conf
+pcm.!default {
+  type hw
+  card 0
 }
 ctl.!default {
- type hw card 0
+  type hw
+  card 0
 }
-Now reboot your Raspberry Pi
+Reboot and verify:
+
+bash
 sudo reboot
-Testing our changes
-Use the command aplay -l to list your audio devices, if your changes were successful, the output should look like this:
+aplay -l  # Should show HiFiBerry DAC
+Software Architecture
+Core Components
+File	Description
+fir_filter.py	Main filter interface
+filter_methods.py	Window/Remez algorithms
+stream_process.py	Real-time processing
+window_types.py	Window functions
+plot_filter.py	Response visualization
+Filter Design Options
+python
+# Available filter types
+FILTER_TYPES = ['lowpass', 'highpass', 'bandpass', 'bandstop']
 
-pi@raspberrypi:~ $ aplay -l
- **** List of PLAYBACK Hardware Devices ****
- card 0: sndrpihifiberry [snd_rpi_hifiberry_dac], device 0: HifiBerry DAC HiFi pcm5102a-hifi-0 []
-   Subdevices: 1/1
-   Subdevice #0: subdevice #0
-You can try playing a wav file using aplay filename.wav or install mplayer to play other file types.
-________________________________________
-referances/credits: https://blog.himbeer.me/2018/12/27/how-to-connect-a-pcm5102-i2s-dac-to-your-raspberry-pi/
-________________________________________
-Commands:
-cd ~/fir-audio-pipeline
-source venv/bin/activate
-python3 stream_process.py
+# Supported windows
+WINDOWS = ['hamming', 'hann', 'blackman', 'kaiser', 'nuttall', 'flattop']
 
+# Design methods
+METHODS = ['window', 'remez']
+Usage Examples
+Basic Filter Design
+python
+from fir_filter import create_fir_filter
 
+# Design a bandpass filter
+coeffs = create_fir_filter(
+    cutoff=[500, 8000],      # Band edges
+    numtaps=251,             # Filter length
+    window_type='kaiser',    # Window with beta=8.6
+    filter_type='bandpass',
+    samplerate=44100
+)
+Real-time Processing
+Configure in stream_process.py:
 
-![Lowpass filter](https://github.com/user-attachments/assets/2716795d-eaff-44b0-815e-cca7536fcf62)
+python
+# Audio Config
+SAMPLERATE = 44100
+UPSAMPLE_FACTOR = 4          # 176.4kHz processing
+CHANNELS = 1                 # Mono
 
+# Filter Config
+FILTER_TYPE = 'bandpass'     
+CUTOFF = [250, 10000]        # 250Hz-10kHz passband
+WINDOW_TYPE = 'blackman'
+NUM_TAPS = 501               # Odd number recommended
+Run processing:
+
+bash
+python stream_process.py
+Visualization
+Filter Response Example
+
+Interactive plots include:
+
+Magnitude response (dB scale)
+
+Phase response (radians)
+
+Centered impulse response
+
+Automatic scaling for sample rates
+
+Example plotting code:
+
+python
+from plot_filter import plot_filter_response
+
+plot_filter_response(
+    coefficients=coeffs,
+    fs=176400,               # Upsampled rate
+    filter_type='bandpass'
+)
+Troubleshooting
+Common Issues
+No Audio Output
+
+Verify DAC appears in aplay -l
+
+Check physical connections
+
+Confirm correct /boot/config.txt settings
+
+High CPU Usage
+
+Reduce UPSAMPLE_FACTOR
+
+Decrease NUM_TAPS
+
+Use simpler window (e.g., Hamming)
+
+Plotting Errors
+
+bash
+# Linux systems may require:
+sudo apt-get install python3-tk
+export QT_QPA_PLATFORM=xcb
+Latency Issues
+Adjust buffer sizes in stream_process.py:
+
+python
+BLOCKSIZE = 1024  # Try 512 or 2048
