@@ -37,13 +37,16 @@ This DSP pipeline provides:
 ```bash
 git clone https://github.com/yourusername/audio-filter-pipeline.git
 cd audio-filter-pipeline
+```
 ### 2. Create Virtual Environment
-bash
+```bash
 python3 -m venv venv
 source venv/bin/activate
+```
 ### 3. Install Dependencies
-bash
+```bash
 pip install -r requirements.txt
+```
 Required packages:
 
 numpy - FIR math and array operations
@@ -68,16 +71,18 @@ SCK	GND	-
 System Configuration
 Enable I2S in /boot/config.txt:
 
-bash
+```bash
 sudo nano /boot/config.txt
+```
 ini
 dtparam=i2s=on
 #dtparam=audio=on
 dtoverlay=hifiberry-dac
 Configure ALSA (/etc/asound.conf):
 
-bash
+```bash
 sudo nano /etc/asound.conf
+```
 conf
 pcm.!default {
   type hw
@@ -87,12 +92,20 @@ ctl.!default {
   type hw
   card 0
 }
+
 Reboot and verify:
 
-bash
+```bash
 sudo reboot
-aplay -l  # Should show HiFiBerry DAC
-Software Architecture
+```
+
+Verify setup 
+```bash
+aplay -l
+```
+# Should show HiFiBerry DAC
+
+## Software Architecture
 Core Components
 File	Description
 fir_filter.py	Main filter interface
@@ -103,19 +116,25 @@ plot_filter.py	Response visualization
 Filter Design Options
 python
 # Available filter types
+```
 FILTER_TYPES = ['lowpass', 'highpass', 'bandpass', 'bandstop']
-
+```
 # Supported windows
+```
 WINDOWS = ['hamming', 'hann', 'blackman', 'kaiser', 'nuttall', 'flattop']
-
+```
 # Design methods
+```
 METHODS = ['window', 'remez']
+```
 Usage Examples
 Basic Filter Design
-python
+```python
 from fir_filter import create_fir_filter
+```
 
 # Design a bandpass filter
+```python
 coeffs = create_fir_filter(
     cutoff=[500, 8000],      # Band edges
     numtaps=251,             # Filter length
@@ -123,10 +142,11 @@ coeffs = create_fir_filter(
     filter_type='bandpass',
     samplerate=44100
 )
+```
 Real-time Processing
 Configure in stream_process.py:
 
-python
+```python
 # Audio Config
 SAMPLERATE = 44100
 UPSAMPLE_FACTOR = 4          # 176.4kHz processing
@@ -137,10 +157,12 @@ FILTER_TYPE = 'bandpass'
 CUTOFF = [250, 10000]        # 250Hz-10kHz passband
 WINDOW_TYPE = 'blackman'
 NUM_TAPS = 501               # Odd number recommended
+```
 Run processing:
 
-bash
+```bash
 python stream_process.py
+```
 Visualization
 Filter Response Example
 
@@ -156,7 +178,7 @@ Automatic scaling for sample rates
 
 Example plotting code:
 
-python
+```python
 from plot_filter import plot_filter_response
 
 plot_filter_response(
@@ -164,6 +186,7 @@ plot_filter_response(
     fs=176400,               # Upsampled rate
     filter_type='bandpass'
 )
+```
 Troubleshooting
 Common Issues
 No Audio Output
