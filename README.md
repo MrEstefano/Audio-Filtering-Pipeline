@@ -101,33 +101,35 @@ sudo reboot
 
 Verify setup 
 ```bash
-aplay -l
+aplay -l # Should show HiFiBerry DAC
 ```
-# Should show HiFiBerry DAC
 
-## Software Architecture
-Core Components
-File	Description
-fir_filter.py	Main filter interface
-filter_methods.py	Window/Remez algorithms
-stream_process.py	Real-time processing
-window_types.py	Window functions
-plot_filter.py	Response visualization
-Filter Design Options
-python
-# Available filter types
-```
+
+# Software Architecture
+
+## Core Components
+| File               | Description                          |
+|--------------------|--------------------------------------|
+| `fir_filter.py`    | Main filter interface                |
+| `filter_methods.py`| Window/Remez algorithms              |
+| `stream_process.py`| Real-time processing                 |
+| `window_types.py`  | Window functions                     |
+| `plot_filter.py`   | Response visualization               |
+
+
+### Available filter types
+```python
 FILTER_TYPES = ['lowpass', 'highpass', 'bandpass', 'bandstop']
 ```
-# Supported windows
-```
+### Supported windows
+```python
 WINDOWS = ['hamming', 'hann', 'blackman', 'kaiser', 'nuttall', 'flattop']
 ```
-# Design methods
-```
+### Design methods
+```python
 METHODS = ['window', 'remez']
 ```
-Usage Examples
+# Usage Examples
 Basic Filter Design
 ```python
 from fir_filter import create_fir_filter
