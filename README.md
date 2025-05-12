@@ -1,20 +1,46 @@
-# Audio-Filtering-Pipeline
-This project involves DSP using FIR filter, windowing. Hardware is RPi Zero, PCM5102 I2S DAC, USB Soundcard as MIC input
+# Audio Filtering Pipeline with FIR Filters
 
-1. Create a Project Folder
-bash : mkdir ~/fir-audio-pipeline
-________________________________________
-2. Create a Virtual Environment
-bash : python3 -m venv venv
-Activate it:
-bash : source venv/bin/activate
-You’ll now see (venv) in your prompt — this means you're inside the environment.
-________________________________________
-3. Install Required Packages
-For real-time audio streaming with FIR filtering, let’s start with:
-bash: pip install numpy sounddevice
-•	numpy — for your FIR math
-•	sounddevice — lightweight audio input/output in real-time (better than pyaudio for ARM boards)
+![DSP Pipeline](https://img.shields.io/badge/Realtime-DSP_Processing-blue) 
+![Raspberry Pi](https://img.shields.io/badge/Hardware-RPi_Zero_PCM5102-green)
+![Python](https://img.shields.io/badge/Python-3.7%2B-yellow)
+
+A real-time audio processing system implementing FIR filters on Raspberry Pi Zero with I2S DAC output, featuring customizable filter design and visualization.
+
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Installation & Setup](#installation--setup)
+- [Hardware Configuration](#hardware-configuration)
+- [Software Architecture](#software-architecture)
+- [Usage Examples](#usage-examples)
+- [Visualization](#visualization)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+## Project Overview
+
+This DSP pipeline provides:
+- Real-time FIR filtering (lowpass/highpass/bandpass/bandstop)
+- Multiple windowing methods (Hamming, Blackman, Kaiser, Nuttall)
+- 1x-4x oversampling capabilities
+- Interactive filter response visualization
+- Optimized for Raspberry Pi Zero performance
+
+**Key Features**:
+- Sample rates from 44.1kHz to 176.4kHz
+- Adjustable filter lengths (51-1001 taps)
+- Both windowed and Remez exchange algorithms
+- TPDF dithering for improved dynamic range
+
+## Installation & Setup
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/yourusername/audio-filter-pipeline.git
+cd audio-filter-pipeline
+
+
+
+
 
 ________________________________________
 Adio FIR pipeline:
