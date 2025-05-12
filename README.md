@@ -87,7 +87,8 @@ Commands:
 cd ~/fir-audio-pipeline
 source venv/bin/activate
 python3 stream_process.py
-![Capture1](https://github.com/user-attachments/assets/8d929871-fcaf-411b-b259-1539dec50f53)
 
 
+
+![Lowpass filter](https://github.com/user-attachments/assets/2716795d-eaff-44b0-815e-cca7536fcf62)
 
