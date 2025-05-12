@@ -1,24 +1,27 @@
 # stream_process.py
 import numpy as np
 import sounddevice as sd
+import soxr
+from scipy import signal
+import os
 from fir_filter import create_fir_filter
-import matplotlib
-import matplotlib.pyplot as plt
 from plot_filter import plot_filter_response
 
-
-
-# === FIR Filter Parameters ===
-NUM_TAPS = 101
-CUTOFF = 9100
-#CUTOFF = [550, 12900]  # Use list for bandpass/bandstop
-WINDOW_TYPE = 'nuttall'
-FILTER_TYPE = 'lowpass'
+# === Audio Configuration ===
 SAMPLERATE = 44100
+UPSAMPLE_FACTOR = 4  # Changed to 1x,2x,3x,4x
+UPSAMPLE_RATE = SAMPLERATE * UPSAMPLE_FACTOR  
 CHANNELS = 1
+BLOCKSIZE = 1024
+NUM_TAPS = 101  # Must be odd
+
+# === Filter Configuration ===
 # if you choose FILTER_TYPE = 'remez' method selected, only high and lowpass works
 # if you choose FILTER_TYPE = 'window' method selected, all lowpass | highpass | bandpass | bandstop  will work 
-
+FILTER_TYPE = 'lowpass'
+#CUTOFF = [800, 10000] #for bands
+CUTOFF = 10000  # Below Nyquist (44.1kHz)
+WINDOW_TYPE = 'nuttall'#'hamming'#'nuttall' #'boxcar'#('kaiser', 12)#'hamming'# #'blackman'#
 
 
 # Filter Type   Cutoff Format   Example
@@ -53,52 +56,76 @@ CHANNELS = 1
 
 
 
-# === Design FIR Filter ===
-# if you choose method = 'remez' method selected, only high and lowpass works
-# if you choose method = 'window' method selected, all lowpass | highpass | bandpass | bandstop  will work 
-
-
-
-
-# [Rest of your existing code...]
+# Create filter
 fir_coeff = create_fir_filter(
     method='window',
     cutoff=CUTOFF,
     numtaps=NUM_TAPS,
     window_type=WINDOW_TYPE,
     filter_type=FILTER_TYPE,
-    samplerate=SAMPLERATE
+    samplerate=UPSAMPLE_RATE
+    #min_phase=False,
+    #weight=[1, 20]  # Strong stopband emphasis
 )
 
-# Show filter response (added delay to ensure plot appears)
-plot_filter_response(fir_coeff,fs=SAMPLERATE,filter_type=FILTER_TYPE)
-plt.pause(0.1)  # Give the plot window time to initialize
+# Plot filter response
+plot_filter_response(fir_coeff, fs=UPSAMPLE_RATE, filter_type=FILTER_TYPE)
 
-# [Keep your existing audio callback and main loop...]
-buffer = np.zeros(NUM_TAPS - 1)
+# === Buffer Setup ===
+input_buffer_size = NUM_TAPS + (BLOCKSIZE * UPSAMPLE_FACTOR) - 1
+input_buffer = np.zeros(input_buffer_size, dtype=np.float32)
+print(f"Buffer size: {input_buffer_size}")  # Should be 801 + 2048 - 1 = 2848
+
+def apply_dither(audio, bit_depth=24):
+    """Apply TPDF dithering"""
+    dither = (np.random.random(len(audio)) - 0.5) * (2 / (2**bit_depth))
+    return audio + dither
 
 def audio_callback(indata, outdata, frames, time, status):
-    global buffer
+    global input_buffer
+    
     if status:
         print(f"Stream status: {status}")
-
-    samples = indata[:, 0]
-    x = np.concatenate((buffer, samples))
-    y = np.convolve(x, fir_coeff, mode='valid')
-    buffer = x[-(NUM_TAPS - 1):]
-    outdata[:, 0] = y.astype(np.float32)
+    
+    # 1. Upsample (1024 ? 2048 samples)
+    upsampled = soxr.resample(
+        indata[:, 0],
+        SAMPLERATE,
+        UPSAMPLE_RATE,
+        quality='VHQ'
+    )
+    
+    # 2. Validate sizes
+    if len(upsampled) != BLOCKSIZE * UPSAMPLE_FACTOR:
+        print(f"Warning: Expected {BLOCKSIZE*UPSAMPLE_FACTOR} samples, got {len(upsampled)}")
+    
+    # 3. Update buffer (efficient roll)
+    input_buffer[:-len(upsampled)] = input_buffer[len(upsampled):]
+    input_buffer[-len(upsampled):] = upsampled
+    
+    # 4. Process with FFT convolution
+    processed = signal.fftconvolve(input_buffer, fir_coeff, mode='valid')
+    
+    # 5. Downsample (2048 ? 1024 samples)
+    downsampled = processed[::UPSAMPLE_FACTOR][:frames]
+    
+    # 6. Output
+    outdata[:, 0] = apply_dither(downsampled)
 
 if __name__ == "__main__":
-    print("Streaming to PCM5102 DAC... Press Ctrl+C to stop.")
+    print(f"Starting DSP processing with {UPSAMPLE_FACTOR}x upsampling...")
+    print(f"Input buffer size: {len(input_buffer)}")
+    print(f"Upsampled block size: {BLOCKSIZE * UPSAMPLE_FACTOR}")
+    
     try:
         with sd.Stream(
             samplerate=SAMPLERATE,
-            blocksize=1024,
+            blocksize=BLOCKSIZE,
             channels=CHANNELS,
             dtype='float32',
             latency='high',
             callback=audio_callback,
-            device=(1,0)
+            device=(1, 0)
         ):
             while True:
                 sd.sleep(1000)
