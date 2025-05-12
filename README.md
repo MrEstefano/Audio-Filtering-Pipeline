@@ -4,7 +4,7 @@
 ![Raspberry Pi](https://img.shields.io/badge/Hardware-RPi_Zero_PCM5102-green)
 ![Python](https://img.shields.io/badge/Python-3.7%2B-yellow)
 
-A real-time audio processing system implementing FIR filters on Raspberry Pi Zero with I2S DAC output, featuring customizable filter design and visualization.
+A real-time audio processing system implementing FIR filters on Raspberry Pi 5 with USB soundcard input, I2S DAC output, featuring customizable filter design and visualization.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
@@ -207,7 +207,7 @@ Adjust buffer sizes in stream_process.py:
 ```python
 BLOCKSIZE = 1024  # Try 512 or 2048
 ```
-# Acknowledgments:
+# Acknowledgments
 - SciPy and NumPy communities
 - SoundDevice for audio I/O
 - HiFiBerry for DAC documentation https://blog.himbeer.me/2018/12/27/how-to-connect-a-pcm5102-i2s-dac-to-your-raspberry-pi/
