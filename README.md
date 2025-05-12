@@ -47,43 +47,40 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-Required packages:
+**Core Packages**:
+- `numpy` - FIR math and array operations
+- `sounddevice` - Low-latency audio I/O
+- `scipy` - Signal processing functions
+- `matplotlib` - Filter visualization
+- `soxr` - High-quality resampling
 
-numpy - FIR math and array operations
+### PCM5102 I2S DAC Connections
 
-sounddevice - Low-latency audio I/O
+| PCM5102 Pin | RPi Zero Pin | GPIO |
+|-------------|--------------|------|
+| VIN (5V)    | Pin 2        | -    |
+| GND         | Pin 6        | -    |
+| LCK (LRCK)  | Pin 35       | 19   |
+| DIN (DATA)  | Pin 40       | 21   |
+| BCK (BCLK)  | Pin 12       | 18   |
+| SCK         | GND          | -    |
 
-scipy - Signal processing functions
-
-matplotlib - Filter visualization
-
-soxr - High-quality resampling
-
-Hardware Configuration
-PCM5102 I2S DAC Connections
-PCM5102 Pin	RPi Zero Pin	GPIO
-VIN (5V)	Pin 2	-
-GND	Pin 6	-
-LCK (LRCK)	Pin 35	19
-DIN (DATA)	Pin 40	21
-BCK (BCLK)	Pin 12	18
-SCK	GND	-
-System Configuration
+### System Configuration
 Enable I2S in /boot/config.txt:
 
 ```bash
 sudo nano /boot/config.txt
 ```
-ini
+```ini
 dtparam=i2s=on
 #dtparam=audio=on
 dtoverlay=hifiberry-dac
 Configure ALSA (/etc/asound.conf):
-
+```
 ```bash
 sudo nano /etc/asound.conf
 ```
-conf
+```conf
 pcm.!default {
   type hw
   card 0
@@ -92,9 +89,9 @@ ctl.!default {
   type hw
   card 0
 }
+```
 
 Reboot and verify:
-
 ```bash
 sudo reboot
 ```
