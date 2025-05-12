@@ -142,9 +142,9 @@ coeffs = create_fir_filter(
     samplerate=44100
 )
 ```
-Real-time Processing
-Configure in stream_process.py:
+### Real-time Processing
 
+Configure in stream_process.py:
 ```python
 # Audio Config
 SAMPLERATE = 44100
@@ -158,25 +158,21 @@ WINDOW_TYPE = 'blackman'
 NUM_TAPS = 501               # Odd number recommended
 ```
 Run processing:
-
 ```bash
 python stream_process.py
 ```
-Visualization
-Filter Response Example
+### Visualization
 
-Interactive plots include:
+**The visualization system provides**:
+- Magnitude response (dB scale)
+- Phase response (radians)
+- Centered impulse response
+- Automatic scaling for different sample rates
 
-Magnitude response (dB scale)
+  ![Lowpass filter](https://github.com/user-attachments/assets/1ca441d2-7fa3-43b4-8277-95397f7edeed)
 
-Phase response (radians)
-
-Centered impulse response
-
-Automatic scaling for sample rates
 
 Example plotting code:
-
 ```python
 from plot_filter import plot_filter_response
 
@@ -186,32 +182,47 @@ plot_filter_response(
     filter_type='bandpass'
 )
 ```
-Troubleshooting
-Common Issues
-No Audio Output
+### Troubleshooting
 
-Verify DAC appears in aplay -l
+## Common Issues
 
-Check physical connections
+# No Audio Output
+1. Verify DAC appears in aplay -l
+2. Check physical connections
+3. Confirm correct /boot/config.txt settings
 
-Confirm correct /boot/config.txt settings
+# High CPU Usage
+1. Reduce UPSAMPLE_FACTOR
+2. Decrease NUM_TAPS
+3. Use simpler window (e.g., Hamming)
 
-High CPU Usage
-
-Reduce UPSAMPLE_FACTOR
-
-Decrease NUM_TAPS
-
-Use simpler window (e.g., Hamming)
-
-Plotting Errors
-
-bash
+# Plotting Errors
+```bash
 # Linux systems may require:
 sudo apt-get install python3-tk
 export QT_QPA_PLATFORM=xcb
-Latency Issues
-Adjust buffer sizes in stream_process.py:
+```
 
-python
+# Latency Issues
+Adjust buffer sizes in stream_process.py:
+```python
 BLOCKSIZE = 1024  # Try 512 or 2048
+```
+### Acknowledgments:
+- SciPy and NumPy communities
+- SoundDevice for audio I/O
+- HiFiBerry for DAC documentation https://blog.himbeer.me/2018/12/27/how-to-connect-a-pcm5102-i2s-dac-to-your-raspberry-pi/
+  
+### License
+MIT License - See LICENSE for details.
+
+This comprehensive README includes:
+
+1. **Structured Sections** - Clear hierarchy with table of contents
+2. **Visual Elements** - Badges, tables, and example image placeholder
+3. **Complete Documentation** - From installation to advanced usage
+4. **Troubleshooting Guide** - Common issues and solutions
+5. **Code Examples** - Ready-to-use configuration snippets
+6. **Professional Formatting** - Consistent markdown styling throughout
+
+The file is optimized for GitHub rendering and provides all necessary information in a single, well-organized document.
