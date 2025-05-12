@@ -162,7 +162,7 @@ Run processing:
 ```bash
 python stream_process.py
 ```
-### Visualization
+# Visualization
 
 **The visualization system provides**:
 - Magnitude response (dB scale)
@@ -183,38 +183,38 @@ plot_filter_response(
     filter_type='bandpass'
 )
 ```
-### Troubleshooting
+# Troubleshooting
 
 ## Common Issues
 
-# No Audio Output
+### No Audio Output
 1. Verify DAC appears in aplay -l
 2. Check physical connections
 3. Confirm correct /boot/config.txt settings
 
-# High CPU Usage
+### High CPU Usage
 1. Reduce UPSAMPLE_FACTOR
 2. Decrease NUM_TAPS
 3. Use simpler window (e.g., Hamming)
 
-# Plotting Errors
+### Plotting Errors
 ```bash
 # Linux systems may require:
 sudo apt-get install python3-tk
 export QT_QPA_PLATFORM=xcb
 ```
 
-# Latency Issues
+### Latency Issues
 Adjust buffer sizes in stream_process.py:
 ```python
 BLOCKSIZE = 1024  # Try 512 or 2048
 ```
-### Acknowledgments:
+## Acknowledgments:
 - SciPy and NumPy communities
 - SoundDevice for audio I/O
 - HiFiBerry for DAC documentation https://blog.himbeer.me/2018/12/27/how-to-connect-a-pcm5102-i2s-dac-to-your-raspberry-pi/
   
-### License
+## License
 MIT License - See LICENSE for details.
 
 This comprehensive README includes:
