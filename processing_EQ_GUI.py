@@ -24,6 +24,8 @@ class EqualizerGUI:
 
         # Filter parameters
         self.cutoff = tk.StringVar(value="16000")
+        self.cutoff_low = tk.StringVar(value="500")
+        self.cutoff_high = tk.StringVar(value="15000")
         self.numtaps = tk.StringVar(value="301")
         self.window_type = tk.StringVar(value='hamming')
         self.filter_type = tk.StringVar(value='lowpass')
@@ -62,9 +64,11 @@ class EqualizerGUI:
 
         fields = [
             ("Cutoff Frequency", self.cutoff),
+            ("Low Cutoff (for band)", self.cutoff_low),
+            ("High Cutoff (for band)", self.cutoff_high),
             ("Taps", self.numtaps),
             ("Sample Rate", self.samplerate),
-            ("Upsample Factor", self.upsample_factor),
+            ("Upsample Factor (max 4)", self.upsample_factor),
             ("Block Size", self.blocksize)
         ]
 
@@ -72,29 +76,36 @@ class EqualizerGUI:
             ttk.Label(self.master, text=label).grid(row=idx, column=0)
             tk.Entry(self.master, textvariable=var).grid(row=idx, column=1)
 
-        ttk.Label(self.master, text="Window").grid(row=8, column=0)
-        ttk.Combobox(self.master, textvariable=self.window_type, values=['hamming', 'hann', 'blackman', 'nuttall']).grid(row=8, column=1)
+        ttk.Label(self.master, text="Window").grid(row=10, column=0)
+        ttk.Combobox(self.master, textvariable=self.window_type, values=['hamming', 'hann', 'blackman', 'nuttall']).grid(row=10, column=1)
 
-        ttk.Label(self.master, text="Filter Type").grid(row=9, column=0)
-        ttk.Combobox(self.master, textvariable=self.filter_type, values=['lowpass', 'highpass', 'bandpass', 'bandstop']).grid(row=9, column=1)
+        ttk.Label(self.master, text="Filter Type").grid(row=11, column=0)
+        ttk.Combobox(self.master, textvariable=self.filter_type, values=['lowpass', 'highpass', 'bandpass', 'bandstop']).grid(row=11, column=1)
 
-        ttk.Button(self.master, text="Apply Settings", command=self.apply_changes).grid(row=10, columnspan=2, pady=10)
+        ttk.Button(self.master, text="Apply Settings", command=self.apply_changes).grid(row=12, columnspan=2, pady=10)
 
         # Matplotlib plot
         self.figure = plt.Figure(figsize=(6, 4), dpi=100)
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.master)
-        self.canvas.get_tk_widget().grid(row=0, column=2, rowspan=11)
+        self.canvas.get_tk_widget().grid(row=0, column=2, rowspan=13)
 
     def apply_changes(self):
         try:
+            upf = min(int(self.upsample_factor.get()), 4)
+            ftype = self.filter_type.get()
+            if ftype in ["bandpass", "bandstop"]:
+                cutoff = [float(self.cutoff_low.get()), float(self.cutoff_high.get())]
+            else:
+                cutoff = float(self.cutoff.get())
+
             self.applied_config = {
                 "samplerate": int(self.samplerate.get()),
-                "upsample_factor": int(self.upsample_factor.get()),
+                "upsample_factor": upf,
                 "blocksize": int(self.blocksize.get()),
-                "cutoff": float(self.cutoff.get()),
+                "cutoff": cutoff,
                 "numtaps": int(self.numtaps.get()),
                 "window_type": self.window_type.get(),
-                "filter_type": self.filter_type.get()
+                "filter_type": ftype
             }
             self.update_fir_filter()
         except Exception as e:
