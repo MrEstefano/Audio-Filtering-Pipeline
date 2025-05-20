@@ -21,7 +21,7 @@ UPSAMPLE_FACTOR = 4  # Changed to 2x
 UPSAMPLE_RATE = SAMPLERATE * UPSAMPLE_FACTOR  # Now 88.2kHz
 CHANNELS = 1
 BLOCKSIZE = 4096
-NUM_TAPS = 501  # Must be odd
+NUM_TAPS = 301  # Must be odd
 
 # === Filter Configuration ===
 FILTER_TYPE = 'lowpass'
@@ -29,14 +29,14 @@ FILTER_TYPE = 'lowpass'
 CUTOFF = 11000  # Below Nyquist (44.1kHz)
 WINDOW_TYPE = 'hamming'#'hamming'#'nuttall' #'boxcar'#('kaiser', 12)#'hamming'# #'blackman'#
 
-# Define bands: [(low, high), gain]
+# Define EQUALAZITION bands: [(low, high), gain]
 EQ_BANDS = [
-    ((60, 250), 1.5),     # Bass boost
-    ((500, 2000), 0.5),   # Midrange neutral
-    ((4000, 16000), 0.8)  # Treble cut
+    ((60, 250), 1.0),     # Bass boost
+    ((500, 2000), 1.2),   # Midrange neutral
+    ((4000, 16000), 1.5)  # Treble cut
 ]
 
-# Create filter
+# Create Main FIR filter
 fir_coeff = create_fir_filter(
     method='window',
     cutoff=CUTOFF,
@@ -44,11 +44,9 @@ fir_coeff = create_fir_filter(
     window_type=WINDOW_TYPE,
     filter_type=FILTER_TYPE,
     samplerate=UPSAMPLE_RATE
-    #min_phase=False,
-    #weight=[1, 20]  # Strong stopband emphasis
 )
 
-# Create FIR filters for each band
+# Create EQ FIR filters for each band
 eq_filters = []
 for (cutoff, gain) in EQ_BANDS:
     coeffs = create_fir_filter(
@@ -130,8 +128,11 @@ def audio_callback(indata, outdata, frames, time, status):
             band = oaconvolve(input_buffer, coeffs, mode='same')
             eq_output += gain * band
 
-        # 4. Final shaping filter
-        final_output = oaconvolve(eq_output, fir_coeff, mode='same')
+        # 4. ChooseFFT convolution method
+        #final_output = oaconvolve(eq_output, fir_coeff, mode='same')   # tapping present
+        #final_output = signal.fftconvolve(eq_output, fir_coeff, mode='valid')  # tapping present
+        final_output = oaconvolve(eq_output, fir_coeff, mode='valid', axes=0)    # tapping not present
+        #final_output = fft_convolve(eq_output, fir_coeff)
         #final_output = oaconvolve(eq_output, fir_coeff, mode='valid')
 
         # 5. Downsample
