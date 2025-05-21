@@ -56,6 +56,7 @@ pip install -r requirements.txt
 - `soxr` - High-quality resampling
 
 ### PCM5102 I2S DAC Connections
+![IMG_1001](https://github.com/user-attachments/assets/8f219b7e-44ed-46b0-8e0f-c663d9f67b66)
 
 | PCM5102 Pin | RPi Zero Pin | GPIO |
 |-------------|--------------|------|
@@ -65,6 +66,8 @@ pip install -r requirements.txt
 | DIN (DATA)  | Pin 40       | 21   |
 | BCK (BCLK)  | Pin 12       | 18   |
 | SCK         | GND          | -    |
+### Soundcard connection via USB
+https://www.aliexpress.com/item/1005003192869006.html
 
 ### System Configuration
 Enable I2S in /boot/config.txt:
