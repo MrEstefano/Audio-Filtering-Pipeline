@@ -1,4 +1,4 @@
-
+# stream_processing_EQ_GUI.py
 '''
 - Minimum-Phase Filtering Support via scipy.signal.minimum_phase.
 - A new GUI toggle to enable/disable minimum-phase behavior.
