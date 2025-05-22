@@ -109,13 +109,14 @@ aplay -l # Should show HiFiBerry DAC
 # Software Architecture
 
 ## Core Components
-| File               | Description                          |
-|--------------------|--------------------------------------|
-| `fir_filter.py`    | Main filter interface                |
-| `filter_methods.py`| Window/Remez algorithms              |
-| `stream_process.py`| Real-time processing                 |
-| `window_types.py`  | Window functions                     |
-| `plot_filter.py`   | Response visualization               |
+| File                      | Description                          |
+|---------------------------|--------------------------------------|
+| `stream_process.py`       | Real-time processing                 |
+| `stream_process_EQ_GUI.py`| Real-time processing                 |
+| `fir_filter.py`           | Main filter interface                |
+| `filter_methods.py`       | Window/Remez algorithms              |
+| `window_types.py`         | Window functions                     |
+| `plot_filter.py`          | Response visualization               |
 
 
 ### Available filter types
@@ -162,6 +163,10 @@ NUM_TAPS = 501               # Odd number recommended
 Run processing:
 ```bash
 python stream_process.py
+```
+For more friendly interface run:
+```bash
+python stream_process_EG_GUI.py
 ```
 # Visualization
 
