@@ -112,7 +112,7 @@ aplay -l # Should show HiFiBerry DAC
 | File                      | Description                          |
 |---------------------------|--------------------------------------|
 | `stream_process.py`       | Real-time processing                 |
-| `stream_process_EQ_GUI.py`| Real-time processing                 |
+| `stream_process_EQ_GUI.py`| Real-time processing with EQ and GUI |
 | `fir_filter.py`           | Main filter interface                |
 | `filter_methods.py`       | Window/Remez algorithms              |
 | `window_types.py`         | Window functions                     |
@@ -166,7 +166,7 @@ python stream_process.py
 ```
 For more friendly interface run:
 ```bash
-python stream_process_EG_GUI.py
+python stream_process_EQ_GUI.py
 ```
 # Visualization
 
@@ -175,10 +175,10 @@ python stream_process_EG_GUI.py
 - Phase response (radians)
 - Centered impulse response
 - Automatic scaling for different sample rates
-
+When running 'stream_process.py' following plot is provided, or optionally proceed with other maore advanced streeming script 
   ![Lowpass filter](https://github.com/user-attachments/assets/1ca441d2-7fa3-43b4-8277-95397f7edeed)
 
-User friendly interface allows, for application the changes while streaming, just run 'stream_process_EG_GUI.py'
+User friendly interface allows, for application the changes while streaming, just run 'stream_process_EQ_GUI.py'
   ![image](https://github.com/user-attachments/assets/9b91ad16-c6b8-49bc-8c4f-6642aa5890ea)
 
 Example plotting code:
