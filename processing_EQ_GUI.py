@@ -7,7 +7,6 @@
 This lays the foundation for professional DSP DAC behavior,
 preserving analog-style phase characteristics and
 clean plotting under upsampled conditions.
-
 '''
 
 import tkinter as tk
@@ -145,7 +144,11 @@ class EqualizerGUI:
 
         ttk.Label(self.master, text="Window").grid(row=10, column=0)
         ttk.Combobox(self.master, textvariable=self.window_type,
-                     values=['hamming', 'hann', 'blackman', 'nuttall']).grid(row=10, column=1)
+             values=[
+                 'boxcar', 'triang', 'blackman', 'hamming', 'hann',
+                 'bartlett', 'flattop', 'parzen', 'bohman',
+                 'blackmanharris', 'nuttall', 'barthann'
+             ]).grid(row=10, column=1)
         ttk.Label(self.master, text="Filter Type").grid(row=11, column=0)
         ttk.Combobox(self.master, textvariable=self.filter_type,
                      values=['lowpass', 'highpass', 'bandpass', 'bandstop']).grid(row=11, column=1)
@@ -238,8 +241,18 @@ class EqualizerGUI:
         ax.legend()
         self.canvas.draw()
 
+
+
 def safe_upsample(data, sr, upsr):
+    '''
+    Upsampling with polyphase filtering. Anti-imaging filter design (low-pass interpolation) based on the resampling ratio.
+       - The quality='VHQ' (Very High Quality) mode means it:
+       - Uses a steep, well-designed FIR filter.
+       - Minimizes aliasing and spectral distortion.
+    '''
     try:
+        # soxr.resample() Provides filtering is automatically tailored to the input and
+        # output sample rates to avoid aliasing and imaging
         return soxr.resample(data[:, 0] if data.ndim > 1 else data, sr, upsr, quality='VHQ')
     except Exception as e:
         print(f"Resampling error: {e}")
@@ -298,7 +311,7 @@ if __name__ == '__main__':
             dtype='float32',
             latency='low',
             callback=make_audio_callback(gui),
-            device=(1, 0)
+            device=(0, 0) # device=(input_device_index, output_device_index))
         ):
             root.mainloop()
     except Exception as e:
