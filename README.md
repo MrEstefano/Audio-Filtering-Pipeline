@@ -178,6 +178,8 @@ python stream_process_EG_GUI.py
 
   ![Lowpass filter](https://github.com/user-attachments/assets/1ca441d2-7fa3-43b4-8277-95397f7edeed)
 
+User friendly interface allows, for application the changes while streaming, just run 'stream_process_EG_GUI.py'
+  ![image](https://github.com/user-attachments/assets/9b91ad16-c6b8-49bc-8c4f-6642aa5890ea)
 
 Example plotting code:
 ```python
