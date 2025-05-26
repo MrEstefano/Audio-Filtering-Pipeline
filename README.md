@@ -5,7 +5,7 @@
 ![Hifiberry](https://img.shields.io/badge/Hardware-DAC2_ADC_Pro-pink)
 ![Python](https://img.shields.io/badge/Python-3.7%2B-yellow)
 
-A real-time audio processing system implementing FIR filters on Raspberry Pi 5 with USB soundcard input, I2S DAC output, featuring customizable filter design and visualization.
+A real-time audio processing system implementing FIR filters on Raspberry Pi 5 with USB soundcard input, I2S DAC output or alternatively Hifiberry DAC2 ADC PRO hat, featuring customizable filter design and visualization.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
