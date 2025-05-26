@@ -70,18 +70,19 @@ pip install -r requirements.txt
 ### Soundcard connection via USB
 https://www.aliexpress.com/item/1005003192869006.html
 
-### System Configuration
-Enable I2S in /boot/config.txt:
+### PCM5102a+USB Soundcard System Configuration
+Enable I2S in /boot/firmware/config.txt:
 
 ```bash
-sudo nano /boot/config.txt
+sudo nano /boot/firmware/config.txt
 ```
 ```ini
 dtparam=i2s=on
 #dtparam=audio=on
 dtoverlay=hifiberry-dac
-Configure ALSA (/etc/asound.conf):
 ```
+Configure ALSA (/etc/asound.conf):
+
 ```bash
 sudo nano /etc/asound.conf
 ```
@@ -106,7 +107,38 @@ Verify setup
 aplay -l # Should show HiFiBerry DAC
 ```
 
+### Hifiberry DAC2 ADC PRO System Configuration
+Enable I2S in /boot/firmware/config.txt:
 
+```bash
+sudo nano /boot/firmware/config.txt
+```
+```ini
+dtparam=i2s=on
+#dtparam=audio=on
+dtoverlay=hifiberry-dacplusadcpro
+```
+Configure ALSA (/etc/asound.conf):
+
+```bash
+sudo nano /etc/asound.conf
+```
+
+```conf
+defaults.pcm.card 0
+defaults.ctl.card 0
+}
+```
+
+Reboot and verify:
+```bash
+sudo reboot
+```
+
+Verify setup 
+```bash
+aplay -l # Should show HiFiBerry DAC
+```
 # Software Architecture
 
 ## Core Components
@@ -155,7 +187,11 @@ SAMPLERATE = 44100
 UPSAMPLE_FACTOR = 4          # 176.4kHz processing
 CHANNELS = 1                 # Mono
 
-# Filter Config
+# Lowpass or highpass Filter Config
+FILTER_TYPE = 'lowpass'     
+CUTOFF = 16000  # 16kHz 
+
+# Bandpass or Bandstop Filter Config
 FILTER_TYPE = 'bandpass'     
 CUTOFF = [250, 10000]        # 250Hz-10kHz passband
 WINDOW_TYPE = 'blackman'
