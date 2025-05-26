@@ -1,7 +1,8 @@
 # Audio Filtering Pipeline with FIR Filters
 
 ![DSP Pipeline](https://img.shields.io/badge/Realtime-DSP_Processing-blue) 
-![Raspberry Pi](https://img.shields.io/badge/Hardware-RPi_Zero_PCM5102-green)
+![Raspberry Pi](https://img.shields.io/badge/Hardware-RPi_RPi_5_PCM5102a-green)
+![Hifiberry](https://img.shields.io/badge/Hardware-DAC2_ADC_Pro-pink)
 ![Python](https://img.shields.io/badge/Python-3.7%2B-yellow)
 
 A real-time audio processing system implementing FIR filters on Raspberry Pi 5 with USB soundcard input, I2S DAC output, featuring customizable filter design and visualization.
@@ -198,7 +199,7 @@ plot_filter_response(
 ### No Audio Output
 1. Verify DAC appears in aplay -l
 2. Check physical connections
-3. Confirm correct /boot/config.txt settings
+3. Confirm correct /boot/firmware/config.txt settings
 
 ### High CPU Usage
 1. Reduce UPSAMPLE_FACTOR
@@ -206,8 +207,8 @@ plot_filter_response(
 3. Use simpler window (e.g., Hamming)
 
 ### Plotting Errors
+Linux systems may require:
 ```bash
-# Linux systems may require:
 sudo apt-get install python3-tk
 export QT_QPA_PLATFORM=xcb
 ```
@@ -217,6 +218,23 @@ Adjust buffer sizes in stream_process.py:
 ```python
 BLOCKSIZE = 1024  # Try 512 or 2048
 ```
+If getting warnings "Input overflow, output underflow" Adjust  parameter : latency='low',   #  <- change to "high"  in stream_process.py or GUI version:
+```python
+with sd.Stream(
+    samplerate=sr,
+    blocksize=bs,
+    channels=1,
+    dtype='float32',
+    latency='low',   #  <- change to "high"
+    callback=audio_callback(),
+    device=(0, 0) # device=(input_device_index, output_device_index))
+):
+```
+It is a runtime audio streaming error indicating that the audio buffers are either not filled in time (underflow) or not consumed fast enough (overflow). 
+1.Input Overflow
+Data from the ADC (audio in) is coming in faster than your code is consuming it. The internal buffer overflows → you lose samples.
+2. Output Underflow
+The code did not provide audio samples in time for the DAC (audio out). The DAC tries to play audio but the buffer is empty → glitch or silence.
 # Acknowledgments
 - SciPy and NumPy communities
 - SoundDevice for audio I/O
