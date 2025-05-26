@@ -137,7 +137,11 @@ sudo reboot
 
 Verify setup 
 ```bash
-aplay -l # Should show HiFiBerry DAC
+aplay -l # Should show HiFiBerry DAC/ADC
+```
+
+```bash
+arecord -l # Should show HiFiBerry DAC/ADC
 ```
 # Software Architecture
 
@@ -158,7 +162,9 @@ FILTER_TYPES = ['lowpass', 'highpass', 'bandpass', 'bandstop']
 ```
 ### Supported windows
 ```python
-WINDOWS = ['hamming', 'hann', 'blackman', 'kaiser', 'nuttall', 'flattop']
+WINDOWS = ['boxcar', 'triang', 'blackman', 'hamming', 'hann',
+          'bartlett', 'flattop', 'parzen', 'bohman',
+          'blackmanharris', 'nuttall', 'barthann'']
 ```
 ### Design methods
 ```python
