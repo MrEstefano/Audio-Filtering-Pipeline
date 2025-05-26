@@ -1,4 +1,4 @@
-# stream_processing_EQ_GUI.py
+
 '''
 - Minimum-Phase Filtering Support via scipy.signal.minimum_phase.
 - A new GUI toggle to enable/disable minimum-phase behavior.
@@ -6,7 +6,7 @@
 
 This lays the foundation for professional DSP DAC behavior,
 preserving analog-style phase characteristics and
-clean plotting under upsampled conditions.
+clean plotting under upsampled conditions.\\\\\\\\\\\\\\\\\
 '''
 
 import tkinter as tk
@@ -17,6 +17,7 @@ import soxr
 from scipy.signal import fftconvolve, freqz, minimum_phase
 from collections import deque
 import os
+import threading
 import resource
 import psutil
 from fir_filter import create_fir_filter
@@ -94,14 +95,12 @@ class EqualizerGUI:
         }
 
     def initialize_buffers(self):
-        max_block_size = 4096
-        max_upsample_factor = 4
 
-        self.input_buffer = np.zeros(max_block_size * max_upsample_factor + 1000, dtype=np.float32)
+        self.input_buffer = np.zeros(self.applied_config["blocksize"] * 4 + 512, dtype=np.float32)
         self.eq_output = np.zeros_like(self.input_buffer)
         self.audio_buffer = deque(maxlen=4)
-        self.silence_block = np.zeros(max_block_size, dtype=np.float32)
-        self.last_output = np.zeros(max_block_size, dtype=np.float32)
+        self.silence_block = np.zeros(self.applied_config["blocksize"], dtype=np.float32)
+        self.last_output = np.zeros(self.applied_config["blocksize"], dtype=np.float32)
 
     def precompute_eq_filters(self):
         self.eq_filters = []
@@ -227,7 +226,12 @@ class EqualizerGUI:
     def plot_response(self, fs, filter_type):
         self.figure.clf()
         ax = self.figure.add_subplot(111)
+        #fs = self.applied_config["samplerate"] * self.applied_config["upsample_factor"]
+        print("fs:", self.applied_config["samplerate"], "x", self.applied_config["upsample_factor"], "=", fs)
+
         w, h = freqz(self.fir_coeff, worN=8000, fs=fs)
+        #plt.xticks(np.arange(0, fs / 2 + 1, 2000))
+        
         ax.plot(w, 20 * np.log10(np.abs(h) + 1e-6), label="Filter")
         if self.show_spectrum.get():
             spectrum = np.fft.rfft(self.last_output * np.hanning(len(self.last_output)))
@@ -238,6 +242,7 @@ class EqualizerGUI:
         ax.set_xlabel("Frequency (Hz)")
         ax.set_ylabel("Magnitude (dB)")
         ax.grid(True)
+        #plt.xticks(np.arange(0, fs / 2 + 1, 2000))  # Adjust spacing to fit your needs
         ax.legend()
         self.canvas.draw()
 
@@ -262,11 +267,28 @@ def apply_dither(audio, bit_depth=24):
     dither = (np.random.random(len(audio)) - 0.5) * (2 / (2**bit_depth))
     return audio + dither
 
+def start_audio_stream(gui):
+    sr, upf, bs = gui.get_dsp_config()
+    try:
+        with sd.Stream(
+            samplerate=sr,
+            blocksize=bs,
+            channels=1,
+            dtype='float32',
+            latency='low',
+            callback=make_audio_callback(gui),
+            device=(0, 0)  # Replace with your actual device indices
+        ):
+            threading.Event().wait()  # Keeps the thread alive
+    except Exception as e:
+        print(f"Audio stream error: {e}")
+        
 def make_audio_callback(gui):
     def audio_callback(indata, outdata, frames, time, status):
         if status:
             print(f"Stream status: {status}")
         try:
+            #start = time.perf_counter()
             bass, mid, treble = gui.get_gains()
             eq_gains = [bass, mid, treble]
             sr, upf, bs = gui.get_dsp_config()
@@ -288,6 +310,7 @@ def make_audio_callback(gui):
                 gui.last_output = downsampled.copy()
             else:
                 outdata[:, 0] = gui.silence_block[:frames]
+             
         except Exception as e:
             print(f"Processing error: {str(e)}")
             if gui.audio_buffer:
@@ -302,20 +325,13 @@ if __name__ == '__main__':
     os.sched_setaffinity(0, {0})
     root = tk.Tk()
     gui = EqualizerGUI(root)
-    try:
-        sr, upf, bs = gui.get_dsp_config()
-        with sd.Stream(
-            samplerate=sr,
-            blocksize=bs,
-            channels=1,
-            dtype='float32',
-            latency='low',
-            callback=make_audio_callback(gui),
-            device=(0, 0) # device=(input_device_index, output_device_index))
-        ):
-            root.mainloop()
-    except Exception as e:
-        print(f"Startup error: {e}")
+    
+    # Start the audio stream in a separate thread
+    audio_thread = threading.Thread(target=start_audio_stream, args=(gui,), daemon=True)
+    audio_thread.start()
 
-	
+    # Start the GUI main loop
+    root.mainloop()
+
+
 
