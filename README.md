@@ -76,6 +76,7 @@ Enable I2S in /boot/firmware/config.txt:
 ```bash
 sudo nano /boot/firmware/config.txt
 ```
+Nano GUI:
 ```ini
 dtparam=i2s=on
 #dtparam=audio=on
@@ -127,7 +128,6 @@ sudo nano /etc/asound.conf
 ```conf
 defaults.pcm.card 0
 defaults.ctl.card 0
-}
 ```
 
 Reboot and verify:
