@@ -57,8 +57,8 @@ pip install -r requirements.txt
 - `soxr` - High-quality resampling
 
 # Hardware Configuration
-### PCM5102 I2S DAC Connections
-![IMG_1001](https://github.com/user-attachments/assets/8f219b7e-44ed-46b0-8e0f-c663d9f67b66)
+### PCM5102a+USB Soundcard System Connections
+Audio input is connected to USB Soundcard 3.5 mm Jack, Output from DAC is fed to amplifier, then to speakers
 
 | PCM5102 Pin | RPi Zero Pin | GPIO |
 |-------------|--------------|------|
@@ -68,12 +68,16 @@ pip install -r requirements.txt
 | DIN (DATA)  | Pin 40       | 21   |
 | BCK (BCLK)  | Pin 12       | 18   |
 | SCK         | GND          | -    |
-### Soundcard connection via USB
+
+![IMG_1001](https://github.com/user-attachments/assets/8f219b7e-44ed-46b0-8e0f-c663d9f67b66)
+
+### USB Soundcard
 https://www.aliexpress.com/item/1005003192869006.html
+### PCM5102a Module
+https://www.aliexpress.com/item/1005006104368969.html
 
 ### PCM5102a+USB Soundcard System Configuration
 Enable I2S in /boot/firmware/config.txt:
-
 ```bash
 sudo nano /boot/firmware/config.txt
 ```
@@ -84,7 +88,6 @@ dtparam=i2s=on
 dtoverlay=hifiberry-dac
 ```
 Configure ALSA (/etc/asound.conf):
-
 ```bash
 sudo nano /etc/asound.conf
 ```
@@ -98,12 +101,10 @@ ctl.!default {
   card 0
 }
 ```
-
 Reboot and verify:
 ```bash
 sudo reboot
 ```
-
 Verify setup 
 ```bash
 aplay -l # Should show HiFiBerry DAC
