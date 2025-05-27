@@ -110,8 +110,8 @@ Verify setup
 aplay -l # Should show HiFiBerry DAC
 ```
 ### Hifiberry DAC2 ADC PRO Hat setup
-Link to hardware: https://www.hifiberry.com/shop/boards/dac2adcpro/
-Datasheet: https://www.hifiberry.com/docs/data-sheets/datasheet-dac2-adc-pro/
+- Link to hardware: https://www.hifiberry.com/shop/boards/dac2adcpro/
+- Datasheet: https://www.hifiberry.com/docs/data-sheets/datasheet-dac2-adc-pro/
 ![IMG_1608](https://github.com/user-attachments/assets/c878ff19-b64a-4717-92c3-71679ce20842)
 In order to place the HAT on the top of RPi with heatrsink, the header extention is required.
 ### Hifiberry DAC2 ADC PRO System Configuration
