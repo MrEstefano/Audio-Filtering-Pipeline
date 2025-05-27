@@ -107,6 +107,8 @@ Verify setup
 ```bash
 aplay -l # Should show HiFiBerry DAC
 ```
+### Hifiberry DAC2 ADC PRO Hat setup
+![IMG_1608](https://github.com/user-attachments/assets/c878ff19-b64a-4717-92c3-71679ce20842)
 
 ### Hifiberry DAC2 ADC PRO System Configuration
 Enable I2S in /boot/firmware/config.txt:
