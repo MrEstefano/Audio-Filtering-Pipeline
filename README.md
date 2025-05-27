@@ -283,10 +283,11 @@ Data from the ADC (audio in) is coming in faster than your code is consuming it.
 2. Output Underflow
 The code did not provide audio samples in time for the DAC (audio out). The DAC tries to play audio but the buffer is empty → glitch or silence.
 # Acknowledgments
-- SciPy and NumPy communities
-- SoundDevice for audio I/O
-- HiFiBerry for DAC documentation https://blog.himbeer.me/2018/12/27/how-to-connect-a-pcm5102-i2s-dac-to-your-raspberry-pi/
-  
+- SciPy and NumPy communities for fftconvolve Function:: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.fftconvolve.html
+- Real-Time Signal Processing in Python: https://bastibe.de/2012-11-02-real-time-signal-processing-in-python.html
+- SoundDevice for audio I/O: https://python-sounddevice.readthedocs.io/en/0.5.1/
+- HiFiBerry for DAC documentation: https://blog.himbeer.me/2018/12/27/how-to-connect-a-pcm5102-i2s-dac-to-your-raspberry-pi/
+- Graphical User Interface (GUI) with Tkinter: https://github.com/spatialaudio/python-sounddevice/blob/master/examples/rec_gui.py 
 # License
 MIT License - See LICENSE for details.
 
