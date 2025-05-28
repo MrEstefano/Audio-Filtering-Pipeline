@@ -1,12 +1,28 @@
-
 '''
-- Minimum-Phase Filtering Support via scipy.signal.minimum_phase.
-- A new GUI toggle to enable/disable minimum-phase behavior.
-- Proper upsampling-adjusted scaling of cutoff frequencies for accurate spectral alignment.
+  Date : 28th May 2025
+  Name : Stefan Zakutanskly
+  Program name: Audio filtering pipeline with Equalizer
+  Description:  This project lays the foundation for professional DSP DAC behavior,
+                preserving analog-style phase characteristics and clean plotting under
+                upsampled conditions. Equalazer expanded on more in frequency ranges for user to adjust.
+                Minimum-Phase Filtering Support via scipy.signal.minimum_phase.
+                A new GUI toggle to enable/disable Frequency Spectrum display and minimum-phase behavior.
+                Proper upsampling-adjusted scaling of cutoff frequencies for accurate spectral alignment.
+                Main Audio Callback process goes as following:
+                # --- STEP 1: Handle any stream status issues ---
+                # --- STEP 2: Get EQ gain levels from GUI sliders ---
+                # --- STEP 3: Get DSP configuration (sample rate, upsample factor, block size) ---
+                # --- STEP 4: Upsample the input audio to match processing rate ---
+                # --- STEP 5: Shift input buffer and insert the new upsampled audio ---
+                # --- STEP 6: Initialize EQ output buffer ---
+                # --- STEP 7: Apply EQ filters for each band (bass, mid, treble) ---
+                # --- STEP 8: Apply additional FIR filter if available ---
+                # --- STEP 9: Downsample back to original sampling rate ---
+                # --- STEP 10: Pad with zeros if not enough frames (at stream start) ---
+                # --- STEP 11: Save processed audio and output it ---
+                # --- STEP 12: If no FIR filter, output silence (placeholder) ---
+                # --- STEP 13: On error, log and fall back to last good buffer or silence ---
 
-This lays the foundation for professional DSP DAC behavior,
-preserving analog-style phase characteristics and
-clean plotting under upsampled conditions.\\\\\\\\\\\\\\\\\
 '''
 
 import tkinter as tk
@@ -41,7 +57,8 @@ class EqualizerGUI:
     def __init__(self, master):
         self.master = master
         master.title("Real-Time Audio Equalizer")
-
+        # --- Set window size (Width x Height) ---
+        #master.geometry("1600x1300")  # You can adjust this as needed
         self.plot_counter = 0
         self.plot_interval = 5
         self.optimize_process()
@@ -65,10 +82,22 @@ class EqualizerGUI:
             print(f"Couldn't optimize process: {e}")
 
     def setup_variables(self):
-        self.bass_gain = tk.DoubleVar(value=1.0)
-        self.mid_gain = tk.DoubleVar(value=1.0)
-        self.treble_gain = tk.DoubleVar(value=1.0)
+        # Define named EQ bands and their frequency ranges
+        self.eq_bands = [
+            ("Low Bass", (20, 60)),
+            ("Mid Bass", (60, 120)),
+            ("High Bass", (120, 250)),
+            ("Low Midrange", (250, 500)),
+            ("Middle Midrange", (500, 1000)),
+            ("High Midrange", (1000, 2000)),
+            ("Low Treble", (2000, 4000)),
+            ("Middle Treble", (4000, 8000)),
+            ("High Treble", (8000, 16000))
+        ]
 
+        # One DoubleVar per band (initialized to 1.0)
+        self.eq_gains = [tk.DoubleVar(value=1.0) for _ in self.eq_bands]
+        #self.eq_gains = [tk.DoubleVar() for _ in range(10)]
         self.cutoff = tk.StringVar(value="16000")
         self.cutoff_low = tk.StringVar(value="500")
         self.cutoff_high = tk.StringVar(value="15000")
@@ -76,7 +105,7 @@ class EqualizerGUI:
         self.window_type = tk.StringVar(value='hamming')
         self.filter_type = tk.StringVar(value='lowpass')
         self.min_phase = tk.BooleanVar(value=False)
-
+        
         self.samplerate = tk.StringVar(value="44100")
         self.upsample_factor = tk.StringVar(value="1")
         self.blocksize = tk.StringVar(value="1024")
@@ -105,11 +134,11 @@ class EqualizerGUI:
     def precompute_eq_filters(self):
         self.eq_filters = []
         sr = self.applied_config["samplerate"] * self.applied_config["upsample_factor"]
-        self.EQ_BANDS = [((60, 250)), ((500, 2000)), ((4000, 16000))]
-        for cutoff in self.EQ_BANDS:
+        #self.eq_bands = []
+        for i, (label, freq_range) in enumerate(self.eq_bands):
             coeffs = create_fir_filter(
                 method='window',
-                cutoff=cutoff,
+                cutoff=freq_range,
                 numtaps=self.applied_config["numtaps"],
                 window_type='hamming',
                 filter_type='bandpass',
@@ -120,13 +149,24 @@ class EqualizerGUI:
             self.eq_filters.append(coeffs)
 
     def create_controls(self):
-        ttk.Label(self.master, text="Bass").grid(row=0, column=0)
-        ttk.Scale(self.master, from_=0.0, to=2.0, variable=self.bass_gain).grid(row=0, column=1)
-        ttk.Label(self.master, text="Mid").grid(row=1, column=0)
-        ttk.Scale(self.master, from_=0.0, to=2.0, variable=self.mid_gain).grid(row=1, column=1)
-        ttk.Label(self.master, text="Treble").grid(row=2, column=0)
-        ttk.Scale(self.master, from_=0.0, to=2.0, variable=self.treble_gain).grid(row=2, column=1)
+        for i, (label, freq_range) in enumerate(self.eq_bands):
+            # Label for each EQ band
+            tk.Label(self.master, text=label).grid(row=i, column=0, padx=5, pady=5, sticky="w")
 
+            # Slider
+            scale = tk.Scale(
+                self.master, from_=0.0, to=2.0, resolution=0.01,
+                orient="horizontal", variable=self.eq_gains[i], length=200,
+                showvalue=False
+            )
+            scale.grid(row=i, column=1, padx=5, pady=5)
+
+            # Value display on the right (moved to column 3)
+            value_label = tk.Label(self.master, textvariable=self.eq_gains[i], width=5)
+            value_label.grid(row=i, column=3, padx=5, pady=5, sticky="w")
+
+        # Now start other parameter controls at a row lower than the EQ bands
+        param_start_row = len(self.eq_bands) + 1
         fields = [
             ("Cutoff Frequency", self.cutoff),
             ("Low Cutoff (for band)", self.cutoff_low),
@@ -137,27 +177,43 @@ class EqualizerGUI:
             ("Block Size", self.blocksize)
         ]
 
-        for idx, (label, var) in enumerate(fields, start=3):
-            ttk.Label(self.master, text=label).grid(row=idx, column=0)
-            tk.Entry(self.master, textvariable=var).grid(row=idx, column=1)
+        for idx, (label, var) in enumerate(fields):
+            ttk.Label(self.master, text=label).grid(row=param_start_row + idx, column=0, padx=5, pady=2, sticky="w")
+            tk.Entry(self.master, textvariable=var).grid(row=param_start_row + idx, column=1, columnspan=2, padx=5, pady=2, sticky="we")
 
-        ttk.Label(self.master, text="Window").grid(row=10, column=0)
+        # Dropdowns and buttons
+        row = param_start_row + len(fields)
+        ttk.Label(self.master, text="Window").grid(row=row, column=0, sticky="w", padx=5, pady=2)
         ttk.Combobox(self.master, textvariable=self.window_type,
-             values=[
-                 'boxcar', 'triang', 'blackman', 'hamming', 'hann',
-                 'bartlett', 'flattop', 'parzen', 'bohman',
-                 'blackmanharris', 'nuttall', 'barthann'
-             ]).grid(row=10, column=1)
-        ttk.Label(self.master, text="Filter Type").grid(row=11, column=0)
-        ttk.Combobox(self.master, textvariable=self.filter_type,
-                     values=['lowpass', 'highpass', 'bandpass', 'bandstop']).grid(row=11, column=1)
-        ttk.Checkbutton(self.master, text="Show Spectrum", variable=self.show_spectrum).grid(row=12, column=0, columnspan=2)
-        ttk.Checkbutton(self.master, text="Minimum Phase Filter", variable=self.min_phase).grid(row=13, column=0, columnspan=2)
-        ttk.Button(self.master, text="Apply Settings", command=self.apply_changes).grid(row=14, columnspan=2, pady=10)
+                     values=[
+                         'boxcar', 'triang', 'blackman', 'hamming', 'hann',
+                         'bartlett', 'flattop', 'parzen', 'bohman',
+                         'blackmanharris', 'nuttall', 'barthann'
+                     ]).grid(row=row, column=1, columnspan=2, padx=5, pady=2, sticky="we")
 
-        self.figure = plt.Figure(figsize=(6, 4), dpi=100)
+        row += 1
+        ttk.Label(self.master, text="Filter Type").grid(row=row, column=0, sticky="w", padx=5, pady=2)
+        ttk.Combobox(self.master, textvariable=self.filter_type,
+                     values=['lowpass', 'highpass', 'bandpass', 'bandstop']
+                     ).grid(row=row, column=1, columnspan=2, padx=5, pady=2, sticky="we")
+
+        row += 1
+        ttk.Checkbutton(self.master, text="Show Spectrum", variable=self.show_spectrum
+                        ).grid(row=row, column=0, columnspan=3, sticky="w", padx=5, pady=2)
+
+        row += 1
+        ttk.Checkbutton(self.master, text="Minimum Phase Filter", variable=self.min_phase
+                        ).grid(row=row, column=0, columnspan=3, sticky="w", padx=5, pady=2)
+
+        row += 1
+        ttk.Button(self.master, text="Apply Settings", command=self.apply_changes
+                   ).grid(row=row, column=0, columnspan=3, pady=10)
+
+        # Place the Matplotlib plot to the right of all controls
+        self.figure = plt.Figure(figsize=(8, 6), dpi=100)
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.master)
-        self.canvas.get_tk_widget().grid(row=0, column=2, rowspan=15)
+        self.canvas.get_tk_widget().grid(row=0, column=4, rowspan=row+1, padx=10, pady=5)
+
         
         
 
@@ -203,7 +259,7 @@ class EqualizerGUI:
             print(f"Error applying changes: {e}")
             
     def get_gains(self):
-        return self.bass_gain.get(), self.mid_gain.get(), self.treble_gain.get()
+        return [var.get() for var in self.eq_gains]
 
     def get_filter_config(self):
         return (
@@ -309,8 +365,7 @@ def make_audio_callback(gui):
 
         try:
             # --- STEP 2: Get EQ gain levels from GUI sliders ---
-            bass, mid, treble = gui.get_gains()
-            eq_gains = [bass, mid, treble]
+            eq_gains = gui.get_gains() 
 
             # --- STEP 3: Get DSP configuration (sample rate, upsample factor, block size) ---
             sr, upf, bs = gui.get_dsp_config()
@@ -327,9 +382,10 @@ def make_audio_callback(gui):
             gui.eq_output.fill(0)
 
             # --- STEP 7: Apply EQ filters for each band (bass, mid, treble) ---
-            for coeffs, gain in zip(gui.eq_filters, eq_gains):
+            for coeffs, gain_var in zip(gui.eq_filters, gui.eq_gains):
+                gain = gain_var.get()
                 band = fftconvolve(gui.input_buffer, coeffs, mode='same')
-                gui.eq_output += gain * band  # Weighted sum of band signals
+                gui.eq_output += gain * band
 
             # --- STEP 8: Apply additional FIR filter if available ---
             if gui.fir_coeff is not None:
@@ -368,6 +424,7 @@ if __name__ == '__main__':
     os.system('sudo cpufreq-set -g performance')
     os.sched_setaffinity(0, {0})
     root = tk.Tk()
+    
     gui = EqualizerGUI(root)
     
         # Start the audio stream in a separate thread
@@ -376,6 +433,7 @@ if __name__ == '__main__':
 
     # Start the GUI main loop
     root.mainloop()
+
 
 
 
