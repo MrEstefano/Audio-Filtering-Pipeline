@@ -113,7 +113,7 @@ aplay -l # Should show HiFiBerry DAC
 - Link to hardware: https://www.hifiberry.com/shop/boards/dac2adcpro/
 - Datasheet: https://www.hifiberry.com/docs/data-sheets/datasheet-dac2-adc-pro/
 
-![IMG_1608](https://github.com/user-attachments/assets/c878ff19-b64a-4717-92c3-71679ce20842=300x200)
+![IMG_1608](https://github.com/user-attachments/assets/c878ff19-b64a-4717-92c3-71679ce20842)
 In order to place the HAT on the top of RPi with heatrsink, the header extention is required.
 ### Hifiberry DAC2 ADC PRO System Configuration
 Enable I2S in /boot/firmware/config.txt:
