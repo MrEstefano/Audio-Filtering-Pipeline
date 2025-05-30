@@ -25,16 +25,18 @@ This DSP pipeline provides:
 - Multiple windowing methods (Hamming, Blackman, Kaiser, Nuttall)
 - 1x-4x oversampling capabilities
 - Interactive filter response visualization
-- Optimized for Raspberry Pi Zero performance
+- Full-spectrum audio equalazir
+- Minimum phase filtering
 
 **Key Features**:
+- Filter shape and Freq. Spectrum plot
 - Sample rates from 44.1kHz to 176.4kHz
 - Adjustable filter lengths (51-1001 taps)
 - Both windowed and Remez exchange algorithms
 - TPDF dithering for improved dynamic range
 
 ## Installation & Setup
-
+In your raspberry system bash the following commands, alternatively ssh via PC terminal domain
 ### 1. Clone Repository
 ```bash
 git clone https://github.com/yourusername/audio-filter-pipeline.git
@@ -198,7 +200,7 @@ Configure in stream_process.py:
 # Audio Config
 SAMPLERATE = 44100
 UPSAMPLE_FACTOR = 4          # 176.4kHz processing
-CHANNELS = 1                 # Mono
+CHANNELS = 1                 # one output
 
 # Lowpass or highpass Filter Config
 FILTER_TYPE = 'lowpass'     
@@ -226,10 +228,11 @@ python stream_process_EQ_GUI.py
 - Centered impulse response
 - Automatic scaling for different sample rates
 When running 'stream_process.py' following plot is provided, or optionally proceed with other maore advanced streeming script 
-  ![Lowpass filter](https://github.com/user-attachments/assets/1ca441d2-7fa3-43b4-8277-95397f7edeed)
+ ![Lowpass filter](https://github.com/user-attachments/assets/1ca441d2-7fa3-43b4-8277-95397f7edeed)
 
 User friendly interface allows, for application the changes while streaming, just run 'stream_process_EQ_GUI.py'
-  ![image](https://github.com/user-attachments/assets/9b91ad16-c6b8-49bc-8c4f-6642aa5890ea)
+ ![image](https://github.com/user-attachments/assets/e1a689fe-3249-4b68-b811-4a980868f2c5)
+
 
 Example plotting code:
 ```python
@@ -241,6 +244,7 @@ plot_filter_response(
     filter_type='bandpass'
 )
 ```
+Enjoy quality music with Digital signal processing at your finger tips
 # Troubleshooting
 
 ## Common Issues
