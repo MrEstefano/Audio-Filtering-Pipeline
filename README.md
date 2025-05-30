@@ -5,7 +5,7 @@
 ![Hifiberry](https://img.shields.io/badge/Hardware-DAC2_ADC_Pro-pink)
 ![Python](https://img.shields.io/badge/Python-3.7%2B-yellow)
 
-A real-time audio processing system implementing FIR filters on Raspberry Pi 5 with USB soundcard input, I2S DAC output or alternatively Hifiberry DAC2 ADC PRO hat, featuring customizable filter design and visualization.
+A real-time audio processing (DSP) system implementing FIR filters, windowing, upsampling on Raspberry Pi 5 with USB soundcard input, I2S DAC output or alternatively Hifiberry DAC2 ADC PRO hat, featuring customizable filter design and visualization.
 
 ## Table of Contents
 - [Project Overview](#project-overview)
@@ -22,8 +22,8 @@ A real-time audio processing system implementing FIR filters on Raspberry Pi 5 w
 
 This DSP pipeline provides:
 - Real-time FIR filtering (lowpass/highpass/bandpass/bandstop)
-- Multiple windowing methods (Hamming, Blackman, Kaiser, Nuttall)
-- 1x-4x oversampling capabilities
+- Multiple windowing methods (Hamming, Blackman, Kaiser, Nuttall, etc)
+- 1x-4x upsampling capabilities
 - Interactive filter response visualization
 - Full-spectrum audio equalazir
 - Minimum phase filtering
@@ -33,7 +33,7 @@ This DSP pipeline provides:
 - Sample rates from 44.1kHz to 176.4kHz
 - Adjustable filter lengths (51-1001 taps)
 - Both windowed and Remez exchange algorithms
-- TPDF dithering for improved dynamic range
+- Triangular Probability Density Function (TPDF) dithering for improved dynamic range
 
 ## Installation & Setup
 In your raspberry system bash the following commands, alternatively ssh via PC terminal domain
