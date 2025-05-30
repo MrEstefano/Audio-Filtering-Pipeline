@@ -24,14 +24,14 @@ This DSP pipeline provides:
 - Real-time FIR filtering (lowpass/highpass/bandpass/bandstop)
 - Multiple windowing methods (Hamming, Blackman, Kaiser, Nuttall, etc)
 - 1x-4x upsampling capabilities
-- Interactive filter response visualization
+- Interactive filter response and Freq. Spectrum visualization
 - Full-spectrum audio equalazir
 - Minimum phase filtering
 
 **Key Features**:
-- Filter shape and Freq. Spectrum plot
 - Sample rates from 44.1kHz to 176.4kHz
 - Adjustable filter lengths (51-1001 taps)
+- Sizeable buffer block 
 - Both windowed and Remez exchange algorithms
 - Triangular Probability Density Function (TPDF) dithering for improved dynamic range
 
