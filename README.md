@@ -1,4 +1,4 @@
-# Audio Filtering Pipeline with FIR Filters
+# Real-time Audio Digital Signal Procesing DAC with FIR Filters, windows, upsampling
 
 ![DSP Pipeline](https://img.shields.io/badge/Realtime-DSP_Processing-blue) 
 ![Raspberry Pi](https://img.shields.io/badge/Hardware-RPi_RPi_5_PCM5102a-green)
@@ -39,7 +39,7 @@ This DSP pipeline provides:
 In your raspberry system bash the following commands, alternatively ssh via PC terminal domain
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/yourusername/audio-filter-pipeline.git
+git clone https://github.com/yourusername/Real-time-DSP-DAC.git
 cd audio-filter-pipeline
 ```
 ### 2. Create Virtual Environment
