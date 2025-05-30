@@ -40,7 +40,7 @@ In your raspberry system bash the following commands, alternatively ssh via PC t
 ### 1. Clone Repository
 ```bash
 git clone https://github.com/yourusername/Real-time-DSP-DAC.git
-cd audio-filter-pipeline
+cd Real-time-DSP-DAC
 ```
 ### 2. Create Virtual Environment
 ```bash
