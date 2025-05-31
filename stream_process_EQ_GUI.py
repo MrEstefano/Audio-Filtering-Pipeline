@@ -36,6 +36,7 @@ import os
 import threading
 import resource
 import psutil
+import scipy.signal as signal
 from fir_filter import create_fir_filter
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
@@ -298,19 +299,34 @@ class EqualizerGUI:
             print(f"Error updating FIR: {e}")
 
     def plot_response(self, fs, filter_type):
-        self.figure.clf()
+        elf.figure.clf()
         ax = self.figure.add_subplot(111)
         
         print("fs:", self.applied_config["samplerate"], "x", self.applied_config["upsample_factor"], "=", fs)
 
         w, h = freqz(self.fir_coeff, worN=8000, fs=fs)
-                
+        # w*self.applied_config["upsample_factor"]        
         ax.plot(w, 20 * np.log10(np.abs(h) + 1e-6), label="Filter")
         if self.show_spectrum.get():
-            spectrum = np.fft.rfft(self.last_output * np.hanning(len(self.last_output)))
+            window_type = self.applied_config["window_type"]
+            # Map window type to NumPy function
+            window = signal.get_window(window_type, len(self.last_output))
+            #window_func = getattr(np, window_type, np.hanning)  # Default to hanning if invalid
+            spectrum = np.fft.rfft(self.last_output * window)
             spectrum_db = 20 * np.log10(np.abs(spectrum) + 1e-6)
-            freqs = np.fft.rfftfreq(len(self.last_output), d=1/fs)
-            ax.plot(freqs, spectrum_db, color='orange', alpha=0.6, label="Spectrum")
+            new_fs= fs/self.applied_config["upsample_factor"]
+            freqs = np.fft.rfftfreq(len(self.last_output), d=1/new_fs)
+            ax.plot(freqs, spectrum_db, color='orange', alpha=0.6, label="Spectrum") 
+                            # Peak marker
+            peak_idx = np.argmax(spectrum_db)
+            peak_freq = freqs[peak_idx]
+            peak_db = spectrum_db[peak_idx]
+            ax.plot(peak_freq, peak_db, 'ro', markersize=8)
+            ax.annotate(f'{peak_freq:.1f}Hz\n{peak_db:.1f}dB', 
+                           xy=(peak_freq, peak_db),
+                           xytext=(10, 10),
+                           textcoords='offset points',
+                           bbox=dict(boxstyle='round,pad=0.5', fc='yellow', alpha=0.5))
         ax.set_title(f"{filter_type.capitalize()} Filter Response")
         ax.set_xlabel("Frequency (Hz)")
         ax.set_ylabel("Magnitude (dB)")
