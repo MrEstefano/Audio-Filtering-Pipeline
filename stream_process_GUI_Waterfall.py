@@ -34,6 +34,7 @@ import numpy as np
 import tkinter as tk
 from tkinter import ttk
 import sounddevice as sd
+import scipy.signal as signal
 from collections import deque
 import matplotlib.pyplot as plt
 from fir_filter import create_fir_filter
@@ -100,7 +101,7 @@ class EqualizerGUI:
         # One DoubleVar per band (initialized to 1.0)
         self.eq_gains = [tk.DoubleVar(value=1.0) for _ in self.eq_bands]
         #self.eq_gains = [tk.DoubleVar() for _ in range(10)]
-        self.cutoff = tk.StringVar(value="16000")
+        self.cutoff = tk.StringVar(value="14000")
         self.cutoff_low = tk.StringVar(value="500")
         self.cutoff_high = tk.StringVar(value="15000")
         self.numtaps = tk.StringVar(value="257")
@@ -119,7 +120,7 @@ class EqualizerGUI:
             "samplerate": 44100,
             "upsample_factor": 1,
             "blocksize": 1024,
-            "cutoff": 16000,
+            "cutoff": 14000,
             "numtaps": 257,
             "window_type": 'hamming',
             "filter_type": 'lowpass',
@@ -145,7 +146,7 @@ class EqualizerGUI:
                 numtaps=self.applied_config["numtaps"],
                 window_type='hamming',
                 filter_type='bandpass',
-                samplerate=sr
+                samplerate = sr
             )
             if self.applied_config["min_phase"] and is_symmetric(coeffs):
                 coeffs = minimum_phase(coeffs, method="hilbert")
@@ -344,14 +345,18 @@ class EqualizerGUI:
         print("fs:", self.applied_config["samplerate"], "x", self.applied_config["upsample_factor"], "=", fs)
 
         w, h = freqz(self.fir_coeff, worN=8000, fs=fs)
-                
+        # w*self.applied_config["upsample_factor"]        
         ax.plot(w, 20 * np.log10(np.abs(h) + 1e-6), label="Filter")
         if self.show_spectrum.get():
-            spectrum = np.fft.rfft(self.last_output* np.hanning(len(self.last_output)) )
+            window_type = self.applied_config["window_type"]
+            # Map window type to NumPy function
+            window = signal.get_window(window_type, len(self.last_output))
+            #window_func = getattr(np, window_type, np.hanning)  # Default to hanning if invalid
+            spectrum = np.fft.rfft(self.last_output * window)
             spectrum_db = 20 * np.log10(np.abs(spectrum) + 1e-6)
-            freqs = np.fft.rfftfreq(len(self.last_output), d=1/fs)
-            ax.plot(freqs, spectrum_db, color='orange', alpha=0.6, label="Spectrum")
-            
+            new_fs= fs/self.applied_config["upsample_factor"]
+            freqs = np.fft.rfftfreq(len(self.last_output), d=1/new_fs)
+            ax.plot(freqs, spectrum_db, color='orange', alpha=0.6, label="Spectrum") 
                             # Peak marker
             peak_idx = np.argmax(spectrum_db)
             peak_freq = freqs[peak_idx]
@@ -457,7 +462,7 @@ def make_audio_callback(gui):
                 # --- STEP 11: Save processed audio and output it ---
                 gui.audio_buffer.append(downsampled)
                 outdata[:, 0] = apply_dither(downsampled)
-                gui.last_output = outdata[:, 0].copy()
+                gui.last_output = downsampled.copy()
 
             else:
                 # --- If no FIR filter, output silence (placeholder) ---
