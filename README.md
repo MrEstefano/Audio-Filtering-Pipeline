@@ -233,6 +233,8 @@ When running 'stream_process.py' following plot is provided, or optionally proce
 User friendly interface allows, for application the changes while streaming, just run 'stream_process_EQ_GUI.py'
  ![image](https://github.com/user-attachments/assets/e1a689fe-3249-4b68-b811-4a980868f2c5)
 
+![image](https://github.com/user-attachments/assets/9f2d0e2a-a5db-4079-b685-f70fa75ba8f4)
+2nd June 2025 : updated stream_process_EQ_GUI.py - mo audio lagging at changes + updated GUI
 
 Example plotting code:
 ```python
