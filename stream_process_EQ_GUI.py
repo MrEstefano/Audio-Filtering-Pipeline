@@ -1,5 +1,5 @@
 '''
-  Date : 28th May 2025
+  Date : 22nd June 2025
   Name : Stefan Zakutanskly
   Program name: Audio filtering pipeline with Equalizer
   Description:  This project lays the foundation for professional DSP DAC behavior,
@@ -8,7 +8,7 @@
                 Minimum-Phase Filtering Support via scipy.signal.minimum_phase.
                 A new GUI toggle to enable/disable Frequency Spectrum display and minimum-phase behavior.
                 Proper upsampling-adjusted scaling of cutoff frequencies for accurate spectral alignment.
-                Main Audio Callback process goes as following:
+                Main DSP method process audio goes as following:
                 # --- STEP 1: Handle any stream status issues ---
                 # --- STEP 2: Get EQ gain levels from GUI sliders ---
                 # --- STEP 3: Get DSP configuration (sample rate, upsample factor, block size) ---
