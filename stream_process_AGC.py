@@ -171,7 +171,7 @@ def process_audio(gui):
             # Downsample
             downsampled = safe_downsample(final_output, upsr, sr, expected_output_len)
             if len(downsampled) < expected_output_len:
-                downsampled = np.pad(downsampled, (0, expected_output_len - len(downsampled))), mode='constant')
+                downsampled = np.pad(downsampled, (0, expected_output_len - len(downsampled)), mode='constant')
             elif len(downsampled) > expected_output_len:
                 downsampled = downsampled[:expected_output_len]
 
@@ -205,27 +205,21 @@ class EqualizerGUI:
         self.master = master
         master.title("Real-Time Audio Equalizer")
         self.optimize_process()
-        try:
-            self.setup_variables()
-            print("After setup_variables, attributes:",
-                  f"samplerate={hasattr(self, 'samplerate')}, "
-                  f"upsample_factor={hasattr(self, 'upsample_factor')}, "
-                  f"blocksize={hasattr(self, 'blocksize')}")  # Debug print
-        except Exception as e:
-            print(f"Error in setup_variables: {e}")
-        if not hasattr(self, 'samplerate'):
-            self.samplerate = tk.StringVar(value="44100")
-            print("Warning: samplerate was not initialized, using fallback")
-        if not hasattr(self, 'upsample_factor'):
-            self.upsample_factor = tk.StringVar(value="2")
-            print("Warning: upsample_factor was not initialized, using fallback")
-        if not hasattr(self, 'blocksize'):
-            self.blocksize = tk.StringVar(value="2048")
-            print("Warning: blocksize was not initialized, using fallback")
+        
+        # 1. First setup all variables
+        self.setup_variables()
+        
+        # 2. Initialize buffers with default values
         self.initialize_buffers()
+        
+        # 3. Create GUI controls
         self.create_controls()
+        
+        # 4. Initialize filters BEFORE plotting
         self.precompute_eq_filters()
-        self.update_fir_filter()
+        self.update_fir_filter()  # This creates self.fir_coeff
+        
+        # 5. Now plot can safely access self.fir_coeff
         self.plot_response(
             self.applied_config["samplerate"] * self.applied_config["upsample_factor"],
             self.applied_config["filter_type"]
@@ -257,6 +251,7 @@ class EqualizerGUI:
             ("Middle Treble", "4000-8000 Hz", (4000, 8000)),
             ("High Treble", "8000-16000 Hz", (8000, 16000))
         ]
+        self.fir_coeff = None  # Initialize as None
         self.eq_gains = [tk.DoubleVar(value=1.0) for _ in self.eq_bands]
         self.cutoff = tk.StringVar(value="14000")
         self.cutoff_low = tk.StringVar(value="500")
@@ -470,14 +465,12 @@ class EqualizerGUI:
 
     def update_fir_filter(self):
         global inactive_filter_params
-        
         try:
-            # Pre-calculate to minimize lock time
             samplerate = self.applied_config["samplerate"] * self.applied_config["upsample_factor"]
             config = self.get_filter_config()
             
-            # Perform the heavy computation outside the lock
-            fir_coeff = create_fir_filter(
+            # Create the filter coefficients
+            self.fir_coeff = create_fir_filter(  # Now stored as instance attribute
                 method='window',
                 cutoff=config[0],
                 numtaps=config[1],
@@ -486,20 +479,27 @@ class EqualizerGUI:
                 samplerate=samplerate
             )
             
-            if self.applied_config["min_phase"] and is_symmetric(fir_coeff):
-                fir_coeff = minimum_phase(fir_coeff, method="hilbert")
-                fir_coeff = normalize_filter(fir_coeff, samplerate)
-            
-            # Quick atomic update
+            if self.applied_config["min_phase"] and is_symmetric(self.fir_coeff):
+                self.fir_coeff = minimum_phase(self.fir_coeff, method="hilbert")
+                self.fir_coeff = normalize_filter(self.fir_coeff, samplerate)
+                
             with filter_lock:
-                inactive_filter_params = fir_coeff.copy()
+                inactive_filter_params = self.fir_coeff.copy()
+                global active_filter_params
                 active_filter_params = inactive_filter_params
+                global active_eq_filters
                 active_eq_filters = inactive_eq_filters
                 
         except Exception as e:
-            print(f"Filter update error: {e}")
-
+            print(f"Error updating FIR: {e}")
+            # Create a fallback filter
+            self.fir_coeff = np.ones(128)/128  # Simple moving average as fallback
+            
     def plot_response(self, fs, filter_type):
+        if not hasattr(self, 'fir_coeff') or self.fir_coeff is None:
+            print("Warning: No filter coefficients available, creating default")
+            self.fir_coeff = np.ones(128)/128  # Simple moving average
+        
         self.figure.clf()
         ax = self.figure.add_subplot(111)
         
