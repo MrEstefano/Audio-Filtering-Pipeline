@@ -1,5 +1,5 @@
 '''
-  Date : 22nd June 2025
+  Date : 1st June 2025
   Name : Stefan Zakutanskly
   Program name: Audio filtering pipeline with Equalizer
   Description:  This project lays the foundation for professional DSP DAC behavior,
