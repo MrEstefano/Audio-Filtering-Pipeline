@@ -72,7 +72,7 @@ Audio input is connected to USB Soundcard 3.5 mm Jack, Output from DAC is fed to
 | SCK         | GND          | -    |
 
 ![IMG_1001](https://github.com/user-attachments/assets/8f219b7e-44ed-46b0-8e0f-c663d9f67b66)
-
+Figure 1. Showing how modules are connected when running 'stream_process.py'
 ### USB Soundcard
 https://www.aliexpress.com/item/1005003192869006.html
 ### PCM5102a Module
@@ -116,7 +116,7 @@ aplay -l # Should show HiFiBerry DAC
 - Datasheet: https://www.hifiberry.com/docs/data-sheets/datasheet-dac2-adc-pro/
 
 ![IMG_1608](https://github.com/user-attachments/assets/c878ff19-b64a-4717-92c3-71679ce20842)
-In order to place the HAT on the top of RPi with heatrsink, the header extention is required.
+Figure 2. In order to place the HAT on the top of RPi with heatrsink, the header extention is required.
 ### Hifiberry DAC2 ADC PRO System Configuration
 Enable I2S in /boot/firmware/config.txt:
 
@@ -227,14 +227,18 @@ python stream_process_EQ_GUI.py
 - Phase response (radians)
 - Centered impulse response
 - Automatic scaling for different sample rates
-When running 'stream_process.py' following plot is provided, or optionally proceed with other maore advanced streeming script 
- ![Lowpass filter](https://github.com/user-attachments/assets/1ca441d2-7fa3-43b4-8277-95397f7edeed)
+When running 'stream_process.py' following plot is provided, or optionally proceed with other maore advanced streeming script
 
-User friendly interface allows, for application the changes while streaming, just run 'stream_process_EQ_GUI.py'
- ![image](https://github.com/user-attachments/assets/e1a689fe-3249-4b68-b811-4a980868f2c5)
+![Lowpass filter](https://github.com/user-attachments/assets/1ca441d2-7fa3-43b4-8277-95397f7edeed)
+Figure 3. Plot snippet from 'stream_process.py'
+
+-  User friendly interface allows, for application the changes while streaming, when 'stream_process_EQ_GUI.py'
+  
+![image](https://github.com/user-attachments/assets/e1a689fe-3249-4b68-b811-4a980868f2c5)
+Figure 4. 29th May 2025 Allowing user to adjust filter, usampling, band gains when 'stream_process_EQ_GUI.py' run
 
 ![image](https://github.com/user-attachments/assets/9f2d0e2a-a5db-4079-b685-f70fa75ba8f4)
-2nd June 2025 : updated stream_process_EQ_GUI.py - mo audio lagging at changes + updated GUI
+Figure 5. 2nd June 2025 : updated stream_process_EQ_GUI.py - mo audio lagging at changes + updated GUI
 
 Example plotting code:
 ```python
