@@ -24,6 +24,9 @@ processed_queue = queue.Queue(maxsize=20)
 
 # Global variables for double buffering filter parameters
 filter_lock = threading.Lock()
+filter_update_lock = threading.Lock()
+filter_update_in_progress = False
+pending_filter_update = False
 active_filter_params = None
 inactive_filter_params = None
 active_eq_filters = None
@@ -86,17 +89,34 @@ def apply_agc(signal, target_level=0.1, window_size=512, alpha=0.01, max_gain=10
         return signal
     
 def process_audio(gui):
+    global filter_update_in_progress, pending_filter_update
+    
     while True:
         # Initialize default output
         output = np.zeros((gui.applied_config["blocksize"], 1), dtype=np.float32)
+        expected_output_len = gui.applied_config["blocksize"]
         
         try:
             start_time = time.time()
-            indata = audio_queue.get()
+            
+            # Check for pending filter updates
+            if pending_filter_update and not filter_update_in_progress:
+                with filter_update_lock:
+                    filter_update_in_progress = True
+                    gui.update_fir_filter()  # Perform the actual update
+                    pending_filter_update = False
+                    filter_update_in_progress = False
+            
+            # Get audio data with timeout
+            try:
+                indata = audio_queue.get(timeout=0.1)
+            except queue.Empty:
+                print("Input queue timeout, processing silence")
+                indata = np.zeros((expected_output_len, 1), dtype=np.float32)
+            
             sr, upf, bs = gui.get_dsp_config()
             source_sr = gui.get_source_sample_rate()
             upsr = sr * upf
-            expected_output_len = bs
 
             # Ensure proper input shape (N,1)
             indata = np.atleast_2d(indata).T if indata.ndim == 1 else indata
@@ -130,7 +150,7 @@ def process_audio(gui):
             elif len(upsampled) > bs * upf:
                 upsampled = upsampled[:bs * upf]
 
-            # Filter processing
+            # Filter processing - single atomic copy
             with filter_lock:
                 local_filter_params = active_filter_params.copy() if active_filter_params is not None else None
                 local_eq_filters = active_eq_filters.copy() if active_eq_filters is not None else gui.eq_filters
@@ -151,28 +171,34 @@ def process_audio(gui):
             # Downsample
             downsampled = safe_downsample(final_output, upsr, sr, expected_output_len)
             if len(downsampled) < expected_output_len:
-                downsampled = np.pad(downsampled, (0, expected_output_len - len(downsampled)), mode='constant')
+                downsampled = np.pad(downsampled, (0, expected_output_len - len(downsampled))), mode='constant')
             elif len(downsampled) > expected_output_len:
                 downsampled = downsampled[:expected_output_len]
 
             # Final output processing
             downsampled = np.atleast_2d(downsampled).T if downsampled.ndim == 1 else downsampled
             output = np.clip(downsampled, -0.99, 0.99)
-
+            
         except Exception as e:
             print(f"Processing error: {e}")
-            # Fall through to use the pre-initialized silent output
-
+            output = np.zeros((expected_output_len, 1), dtype=np.float32)
+        
         finally:
             # Ensure we always put something in the queue
-            processed_queue.put(output)
-            audio_queue.task_done()
-
-            # Log processing time
-            processing_time = time.time() - start_time
-            frame_time = bs / sr
-            if processing_time > frame_time:
-                print(f"Processing overrun: {processing_time*1000:.1f}ms > {frame_time*1000:.1f}ms")
+            try:
+                processed_queue.put(output, timeout=0.1)
+                audio_queue.task_done()
+                
+                # Log processing time
+                processing_time = time.time() - start_time
+                frame_time = bs / sr
+                if processing_time > frame_time:
+                    print(f"Processing overrun: {processing_time*1000:.1f}ms > {frame_time*1000:.1f}ms")
+                    
+            except queue.Full:
+                print("Output queue full, dropping frame")
+            except Exception as e:
+                print(f"Queue operation error: {e}")
 
 class EqualizerGUI:
     def __init__(self, master):
@@ -348,15 +374,18 @@ class EqualizerGUI:
         self.canvas.get_tk_widget().grid(row=0, column=4, rowspan=row+1, padx=10, pady=5)
 
     def apply_changes(self):
-        global inactive_filter_params, inactive_eq_filters
+        global pending_filter_update
+        
         try:
+            # Calculate new parameters without locking audio thread
             upf = min(int(self.upsample_factor.get()), 4)
             ftype = self.filter_type.get()
+            
             if ftype in ["bandpass", "bandstop"]:
                 cutoff = [float(self.cutoff_low.get()), float(self.cutoff_high.get())]
             else:
                 cutoff = float(self.cutoff.get())
-
+    
             self.applied_config = {
                 "samplerate": int(self.samplerate.get()),
                 "upsample_factor": upf,
@@ -367,10 +396,15 @@ class EqualizerGUI:
                 "filter_type": ftype,
                 "min_phase": self.min_phase.get()
             }
+            
+            # Signal filter update needed
+            with filter_update_lock:
+                pending_filter_update = True
+                
             self.precompute_eq_filters()
-            self.update_fir_filter()
             self.plot_response(self.applied_config["samplerate"] * upf, ftype)
             self.upsampled_rate.set(f"{self.applied_config['samplerate'] * upf} Hz")
+            
         except Exception as e:
             print(f"Error applying changes: {e}")
 
@@ -436,9 +470,13 @@ class EqualizerGUI:
 
     def update_fir_filter(self):
         global inactive_filter_params
+        
         try:
+            # Pre-calculate to minimize lock time
             samplerate = self.applied_config["samplerate"] * self.applied_config["upsample_factor"]
             config = self.get_filter_config()
+            
+            # Perform the heavy computation outside the lock
             fir_coeff = create_fir_filter(
                 method='window',
                 cutoff=config[0],
@@ -447,18 +485,19 @@ class EqualizerGUI:
                 filter_type=config[3],
                 samplerate=samplerate
             )
+            
             if self.applied_config["min_phase"] and is_symmetric(fir_coeff):
                 fir_coeff = minimum_phase(fir_coeff, method="hilbert")
                 fir_coeff = normalize_filter(fir_coeff, samplerate)
+            
+            # Quick atomic update
             with filter_lock:
                 inactive_filter_params = fir_coeff.copy()
-                global active_filter_params
                 active_filter_params = inactive_filter_params
-                global active_eq_filters
                 active_eq_filters = inactive_eq_filters
-            self.fir_coeff = fir_coeff
+                
         except Exception as e:
-            print(f"Error updating FIR: {e}")
+            print(f"Filter update error: {e}")
 
     def plot_response(self, fs, filter_type):
         self.figure.clf()
