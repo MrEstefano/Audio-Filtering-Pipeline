@@ -164,7 +164,7 @@ arecord -l # Should show HiFiBerry DAC/ADC
 | `window_types.py`         | Window functions                     |
 | `plot_filter.py`          | Response visualization               |
 
-![Drawing 7](https://github.com/user-attachments/assets/0bdb9360-ca00-4a24-b920-000fc6158464)
+![Drawing 7 (1)](https://github.com/user-attachments/assets/2e816cd1-cc23-425c-b63c-f29c39ca6b7d)
 
 ### Available filter types
 ```python
